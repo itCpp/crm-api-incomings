@@ -21,8 +21,8 @@ class Incomings extends Controller
 
         $event = IncomingEvent::create([
             'api_type' => "text",
-            'ip' => $request->ip(),
-            'user_agent' => $request->header('User-Agent'),
+            'ip' => $request->header('X-Remote-Addr') ?: $request->ip(),
+            'user_agent' => $request->header('X-User-Agent') ?: $request->header('User-Agent'),
             'request_data' => parent::encrypt($request->all()),
         ]);
 

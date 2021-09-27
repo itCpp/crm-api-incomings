@@ -18,6 +18,13 @@ class IncomingText extends Controller
      * @var int
      */
     public static $retry = 3;
+
+    /**
+     * Отсрочка следующей попытки отправки после неудачной
+     * 
+     * @var int Минуты
+     */
+    public static $delay = 2;
     
     /**
      * Обработка входящего события
@@ -59,7 +66,7 @@ class IncomingText extends Controller
                 'verify' => false, // Отключение проверки сетификата
             ])
             ->post($url, [
-                'id' => $row->id,
+                'text' => $row->id,
             ]);
 
             $row->request_count++;
@@ -80,8 +87,8 @@ class IncomingText extends Controller
             $row->response_code = $e->getCode();
             $row->response_data = [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTrace(),
-                'previos' => $e->getPrevious(),
+                // 'trace' => $e->getTrace(),
+                // 'previos' => $e->getPrevious(),
             ];
 
             $row->save();
@@ -96,8 +103,8 @@ class IncomingText extends Controller
             $row->response_code = $e->getCode();
             $row->response_data = [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTrace(),
-                'previos' => $e->getPrevious(),
+                // 'trace' => $e->getTrace(),
+                // 'previos' => $e->getPrevious(),
             ];
             $row->sent_at = date("Y-m-d H:i:s");
 
@@ -121,7 +128,7 @@ class IncomingText extends Controller
     {
 
         if ($row->request_count < self::$retry)
-            IncomingTextJob::dispatch($row)->delay(now()->addMinutes(5));
+            IncomingTextJob::dispatch($row)->delay(now()->addMinutes(self::$delay));
 
         return null;
 

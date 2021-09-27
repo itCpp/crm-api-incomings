@@ -19,6 +19,7 @@ class CreateIncomingEventsTable extends Migration
             $table->string('ip', 100)->nullable();
             $table->string('user_agent', 255)->nullable();
             $table->json('request_data')->comment("Полученные данные");
+            $table->timestamp('recrypt')->nullable();
             $table->timestamps();
         });
     }
