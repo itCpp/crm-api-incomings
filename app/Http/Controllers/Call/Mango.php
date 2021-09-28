@@ -105,10 +105,12 @@ class Mango extends Controller
         if (!method_exists($this, $method))
             return null;
 
-        $row = IncomingCallRequest::create([
-            'api_type' => $event->api_type,
-            'incoming_event_id' => $event->id,
-        ]);
+        if (!$row = IncomingCallRequest::where('incoming_event_id', $event->id)->first()) {
+            $row = IncomingCallRequest::create([
+                'api_type' => $event->api_type,
+                'incoming_event_id' => $event->id,
+            ]);
+        }
 
         return $this->$method($row);
     }
@@ -198,8 +200,10 @@ class Mango extends Controller
     public static function retry(IncomingCallRequest $row)
     {
 
-        if ($row->request_count < self::$retry)
-            IncomingMangoJob::dispatch($row->event)->delay(now()->addMinutes(self::$delay));
+        if ($row->request_count < self::$retry) {
+            $event = IncomingEvent::find($row->incoming_event_id);
+            IncomingMangoJob::dispatch($event)->delay(now()->addMinutes(self::$delay));
+        }
 
         return null;
     }
