@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Http\Controllers\Call\Mango;
 use App\Http\Controllers\Call\RT;
 use App\Http\Controllers\Text\IncomingText;
+use App\Jobs\IncomingMangoJob;
 use App\Models\IncomingEvent;
 
 class Incomings extends Controller
@@ -58,11 +60,45 @@ class Incomings extends Controller
             'api_type' => "RT",
             'ip' => $request->header('X-Remote-Addr') ?: $request->ip(),
             'user_agent' => $request->header('X-User-Agent') ?: $request->header('User-Agent'),
-            'request_data' => parent::encrypt($request->all()),
+            'request_data' => parent::encrypt($data),
         ]);
 
         if ($request->state == "new" AND $request->type == "incoming")
             RT::event($event);
+
+        return response()->json([
+            'message' => "Запрос обработан",
+        ]);
+
+    }
+
+    /**
+     * Входящее событие Манго
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @param string $type Тип события
+     * @return response
+     */
+    public static function incomingCallEventMango(Request $request, $type)
+    {
+
+        $data = $request->all();
+        $data['type'] = $type;
+
+        if (is_string($data['json'] ?? null))
+            $data['data'] = json_decode($data['json'], true);
+
+        $data['phone'] = $data['data']['from']['number'] ?? null; // Номер звонящего
+        $data['sip'] = ($data['data']['to']['number'] ?? "0000") . "@mango"; // Номер звонящему
+
+        $event = IncomingEvent::create([
+            'api_type' => "Mango",
+            'ip' => $request->header('X-Remote-Addr') ?: $request->ip(),
+            'user_agent' => $request->header('X-User-Agent') ?: $request->header('User-Agent'),
+            'request_data' => parent::encrypt($data),
+        ]);
+
+        IncomingMangoJob::dispatch($event);
 
         return response()->json([
             'message' => "Запрос обработан",

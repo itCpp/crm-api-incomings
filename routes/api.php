@@ -19,3 +19,6 @@ Route::any('inText', 'Incomings@incomingTextRequest');
 
 /** Входящие события РТ */
 Route::any('rt', 'Incomings@incomingCallEventRT');
+
+/** Входящие события Манго */
+Route::any('mango/events/{type}', 'Incomings@incomingCallEventMango');
