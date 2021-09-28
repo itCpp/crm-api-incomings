@@ -16,3 +16,6 @@ use Illuminate\Support\Facades\Route;
 
 /** Обработка текстовой заявки */
 Route::any('inText', 'Incomings@incomingTextRequest');
+
+/** Входящие события РТ */
+Route::any('rt', 'Incomings@incomingCallEventRT');
