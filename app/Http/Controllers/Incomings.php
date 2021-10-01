@@ -12,7 +12,7 @@ use App\Models\IncomingEvent;
 
 class Incomings extends Controller
 {
-    
+
     /**
      * Входящая текстовая заявка
      * 
@@ -34,7 +34,6 @@ class Incomings extends Controller
         return response()->json([
             'message' => "Запрос обработан",
         ]);
-
     }
 
     /**
@@ -63,13 +62,12 @@ class Incomings extends Controller
             'request_data' => parent::encrypt($data),
         ]);
 
-        if ($request->state == "new" AND $request->type == "incoming")
+        if ($request->state == "new" and $request->type == "incoming")
             RT::event($event);
 
         return response()->json([
             'message' => "Запрос обработан",
         ]);
-
     }
 
     /**
@@ -103,7 +101,29 @@ class Incomings extends Controller
         return response()->json([
             'message' => "Запрос обработан",
         ]);
-
     }
 
+    /**
+     * Запись любого события
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return response
+     */
+    public static function events(Request $request)
+    {
+
+        $data = $request->all();
+
+        $event = IncomingEvent::create([
+            'api_type' => $request->ip(),
+            'ip' => $request->header('X-Remote-Addr') ?: $request->ip(),
+            'user_agent' => $request->header('X-User-Agent') ?: $request->header('User-Agent'),
+            'request_data' => parent::encrypt($data),
+        ]);
+
+        return response()->json([
+            'message' => "Запрос обработан",
+            'data' => $event,
+        ]);
+    }
 }

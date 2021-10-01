@@ -22,3 +22,6 @@ Route::any('rt', 'Incomings@incomingCallEventRT');
 
 /** Входящие события Манго */
 Route::any('mango/events/{type}', 'Incomings@incomingCallEventMango');
+
+/** Входящее события с внутренней звонилки */
+Route::any('events', 'Incomings@events');
