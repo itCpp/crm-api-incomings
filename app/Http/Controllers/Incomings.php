@@ -149,7 +149,7 @@ class Incomings extends Controller
         return response()->json([
             'message' => "Событие принято",
             'event' => $event,
-            // 'data' => $data,
+            'data' => $data,
             'params' => $params,
         ]);
     }
