@@ -138,6 +138,7 @@ class Incomings extends Controller
     {
 
         $data = $request->all();
+        $data['params'] = $params;
 
         $event = IncomingEvent::create([
             'api_type' => "Asterisk",
