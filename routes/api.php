@@ -25,3 +25,6 @@ Route::any('mango/events/{type}', 'Incomings@incomingCallEventMango');
 
 /** Входящее события с внутренней звонилки */
 Route::any('events', 'Incomings@events');
+
+/** Обработка событий внутреннего Asterisk */
+Route::any('asterisk/{a?}/{b?}/{c?}', 'Incomings@asterisk');

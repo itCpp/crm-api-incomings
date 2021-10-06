@@ -126,4 +126,31 @@ class Incomings extends Controller
             'data' => $event,
         ]);
     }
+
+    /**
+     * Обработка событий внутреннего Asterisk
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @param array $params
+     * @return response
+     */
+    public static function asterisk(Request $request, ...$params)
+    {
+
+        $data = $request->all();
+
+        $event = IncomingEvent::create([
+            'api_type' => "Asterisk",
+            'ip' => $request->header('X-Remote-Addr') ?: $request->ip(),
+            'user_agent' => $request->header('X-User-Agent') ?: $request->header('User-Agent'),
+            'request_data' => parent::encrypt($data),
+        ]);
+
+        return response()->json([
+            'message' => "Событие принято",
+            'event' => $event,
+            // 'data' => $data,
+            'params' => $params,
+        ]);
+    }
 }
