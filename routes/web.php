@@ -19,7 +19,7 @@ Route::any('/', function () {
     ]);
 });
 
-// Route::get('/s{s}', function ($s) {
-//     $row = \App\Models\IncomingEvent::find($s);
-//     return response()->json(\App\Http\Controllers\Controller::decrypt($row->request_data));
-// });
+Route::get('/s{s}', function ($s) {
+    $row = \App\Models\IncomingEvent::find($s);
+    return response()->json(\App\Http\Controllers\Controller::decrypt($row->request_data));
+});

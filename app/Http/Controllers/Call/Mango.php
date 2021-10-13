@@ -88,13 +88,13 @@ class Mango extends Controller
         $this->vpbx_api_key = $request->vpbx_api_key ?? ""; // Api ключ от сервера манго
 
         $all = $request->all();
-        $json = isset($all['json']) ? json_decode($all['json'], true) : null;
+        $json = isset($all['request']['json']) ? json_decode($all['request']['json'], true) : null;
 
         // if (!$this->checkSing($all['json'] ?? ""))
         //     return null;
 
         $data = [
-            'call_state' => $json['call_state'] ?? "", // Тип события
+            'call_state' => $json['call_state'] ?? "Null", // Тип события
             'phone' => $json['from']['number'] ?? null, // Номер звонящего
             'sip' => $json['to']['number'] ?? null, // Номер звонящему
             'timestamp' => $json['timestamp'] ?? time(), // Время события
