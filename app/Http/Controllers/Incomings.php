@@ -9,6 +9,7 @@ use App\Http\Controllers\Call\RT;
 use App\Http\Controllers\Text\IncomingText;
 use App\Jobs\IncomingMangoJob;
 use App\Models\IncomingEvent;
+use App\Models\Old\CallDetailRecords;
 
 class Incomings extends Controller
 {
@@ -146,6 +147,25 @@ class Incomings extends Controller
             'user_agent' => $request->header('X-User-Agent') ?: $request->header('User-Agent'),
             'request_data' => parent::encrypt($data),
         ]);
+
+        $type = $data['Call'] ?? null;
+
+        if ($type == "Hangup") {
+
+            $time = strtotime($data['DateTime'] ?? null);
+            $path = $data['Bases'] ?? null;
+
+            if ($path) {
+                CallDetailRecords::create([
+                    'event_id' => $event->id,
+                    'phone' => $data['Number'] ?? null,
+                    'extension' => $data['extension'] ?? null,
+                    'path' => $path,
+                    'call_at' => $time ? date("Y-m-d H:i:s", $time) : now(),
+                    'type' => "out",
+                ]);
+            }
+        }
 
         return response()->json([
             'message' => "Событие принято",
