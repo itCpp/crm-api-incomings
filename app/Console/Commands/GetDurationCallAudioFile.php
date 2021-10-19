@@ -60,18 +60,37 @@ class GetDurationCallAudioFile extends Command
         }
 
         $file = true;
+        $id = 1316;
 
         while ($file) {
 
-            $file = CallDetailRecords::where('duration', 0)->whereNotNull('duration')->first();
+            // $file = CallDetailRecords::where('duration', 0)->whereNotNull('duration')->first();
+            $file = CallDetailRecords::where('id', '>', $id)
+                ->whereDate('created_at', "2021-10-19")
+                ->whereNotNull('duration')
+                ->first();
 
             if ($file instanceof CallDetailRecords) {
-                $updated = Incomings::updateDurationTime($file, $this->host);
-                $this->echoStep($updated);
+                $id = $file->id;
+
+                try {
+                    $updated = Incomings::updateDurationTime($file, $this->host);
+                    $this->echoStep($updated);
+                } catch (\FFMpeg\Exception\RuntimeException $e) {
+
+                    $error = $e->getMessage();
+
+                    $this->output->writeln([
+                        "<fg=red>[" . date("Y-m-d H:i:s") . "]</>",
+                        "<fg=red>{$this->host}{$file->path}</>",
+                        "<error>{$error}</error>\n",
+                    ]);
+                }
             }
         }
 
-        $this->output->writeln("<question>Время выполнения скрипта: " . round(microtime(true) - $start, 4) . " сек</question>\n");
+        $stop = round(microtime(true) - $start, 2);
+        $this->output->writeln("<question>Время выполнения скрипта: {$stop} сек</question>\n");
 
         return 0;
     }
@@ -85,12 +104,12 @@ class GetDurationCallAudioFile extends Command
     public function echoStep(CallDetailRecords $file)
     {
         $duration = $file->duration ?: "0";
-        $color = $file->duration ? "green" : "yellow";
-        
+        $color = $file->duration ? "green" : "cyan";
+
         $this->output->writeln([
             "<fg=green>[" . date("Y-m-d H:i:s") . "]</>",
             "<fg=green>{$this->host}{$file->path}</>",
-            "<fg={$color}>DORATION {$duration} sec</>\n"
+            "<fg={$color}>DURATION {$duration} sec</>\n",
         ]);
 
         return null;
