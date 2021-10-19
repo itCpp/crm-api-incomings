@@ -26,5 +26,6 @@ class CallDetailRecords extends Model
         'path',
         'call_at',
         'type',
+        'duration',
     ];
 }
