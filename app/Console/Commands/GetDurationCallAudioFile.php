@@ -2,9 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\Incomings;
 use App\Models\Old\CallDetailRecords;
-use FFMpeg\FFMpeg;
 use Illuminate\Console\Command;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class GetDurationCallAudioFile extends Command
 {
@@ -37,7 +38,10 @@ class GetDurationCallAudioFile extends Command
     public function __construct()
     {
         parent::__construct();
+
         $this->host = env('CALL_RECORDS_SERVER', null);
+
+        $this->output = new ConsoleOutput;
     }
 
     /**
@@ -51,45 +55,43 @@ class GetDurationCallAudioFile extends Command
         $start = microtime(true);
 
         if (!$this->host) {
-            echo "Адрес сервера с файлами не определен в конфиге\r\n";
+            $this->output->writeln("\n<error>Адрес сервера с файлами не определен в конфиге</error>\n");
             return 0;
         }
-        
+
         $file = true;
 
         while ($file) {
-            if ($file = CallDetailRecords::where('duration', 0)->whereNotNull('duration')->first())
-                $this->handleStep($file);
+
+            $file = CallDetailRecords::where('duration', 0)->whereNotNull('duration')->first();
+
+            if ($file instanceof CallDetailRecords) {
+                $updated = Incomings::updateDurationTime($file, $this->host);
+                $this->echoStep($updated);
+            }
         }
 
-        echo "Время выполнения скрипта: " . round(microtime(true) - $start, 4) . " сек.\r\n";
+        $this->output->writeln("<question>Время выполнения скрипта: " . round(microtime(true) - $start, 4) . " сек</question>\n");
 
         return 0;
     }
 
     /**
-     * Проверка одного файла
+     * Вывод информации в консоль
      * 
      * @param \App\Models\Old\CallDetailRecords $file
      * @return null
      */
-    public function handleStep(CallDetailRecords $file)
+    public function echoStep(CallDetailRecords $file)
     {
-        $path = $this->host . $file->path;
-
-        $ffmpeg = FFMpeg::create();
-        $audio = $ffmpeg->open($path);
-
-        $duration = $audio->getFormat()->get('duration');
-
-        echo "[" . date("Y-m-d H:i:s") . "]\r\n";
-        echo "FILE {$file->path}\n";
-        echo "DURATION {$duration}\n";
-        echo "Обновлено\r\n\n";
-
-        $duration = (int) $duration;
-        $file->duration = $duration ? round($duration, 0) : null;
-        $file->save();
+        $duration = $file->duration ?: "0";
+        $color = $file->duration ? "green" : "yellow";
+        
+        $this->output->writeln([
+            "<fg=green>[" . date("Y-m-d H:i:s") . "]</>",
+            "<fg=green>{$this->host}{$file->path}</>",
+            "<fg={$color}>DORATION {$duration} sec</>\n"
+        ]);
 
         return null;
     }

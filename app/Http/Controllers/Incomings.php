@@ -8,8 +8,10 @@ use App\Http\Controllers\Call\Mango;
 use App\Http\Controllers\Call\RT;
 use App\Http\Controllers\Text\IncomingText;
 use App\Jobs\IncomingMangoJob;
+use App\Jobs\UpdateDurationTime;
 use App\Models\IncomingEvent;
 use App\Models\Old\CallDetailRecords;
+use FFMpeg\FFMpeg;
 
 class Incomings extends Controller
 {
@@ -157,7 +159,8 @@ class Incomings extends Controller
             $duration = (int) ($data['TimeCall'] ?? 0);
 
             if ($path) {
-                CallDetailRecords::create([
+
+                $file = CallDetailRecords::create([
                     'event_id' => $event->id,
                     'phone' => $data['Number'] ?? null,
                     'extension' => $data['extension'] ?? null,
@@ -166,6 +169,8 @@ class Incomings extends Controller
                     'type' => "out",
                     'duration' => $duration,
                 ]);
+
+                UpdateDurationTime::dispatch($file);
             }
         }
 
@@ -175,5 +180,29 @@ class Incomings extends Controller
             'data' => $data,
             'params' => $params,
         ]);
+    }
+
+    /**
+     * Обновление информации и длине аудиофала
+     * 
+     * @param \App\Models\Old\CallDetailRecords $file
+     * @return \App\Models\Old\CallDetailRecords
+     */
+    public static function updateDurationTime(CallDetailRecords $file, $host = null)
+    {
+        if (!$host = $host ?: env('CALL_RECORDS_SERVER', null))
+            return $file;
+
+        $path = $host . $file->path;
+
+        $ffmpeg = FFMpeg::create();
+        $audio = $ffmpeg->open($path);
+
+        $duration = (int) $audio->getFormat()->get('duration');
+
+        $file->duration = $duration ? round($duration, 0) : null;
+        $file->save();
+
+        return $file;
     }
 }
