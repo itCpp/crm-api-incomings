@@ -23,3 +23,6 @@ Route::get('/s{s}', function ($s) {
     $row = \App\Models\IncomingEvent::find($s);
     return response()->json(\App\Http\Controllers\Controller::decrypt($row->request_data));
 });
+
+/** Обработка номера телефона и вывод его скрытой копии */
+Route::get('hidePhone', 'Phones@hidePhone');
