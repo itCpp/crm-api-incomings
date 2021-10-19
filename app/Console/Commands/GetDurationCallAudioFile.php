@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Old\CallDetailRecords;
+use FFMpeg\FFMpeg;
 use Illuminate\Console\Command;
 
 class GetDurationCallAudioFile extends Command
@@ -22,6 +23,13 @@ class GetDurationCallAudioFile extends Command
     protected $description = 'Checked duration audio call records';
 
     /**
+     * Адрес сервера хранилища файлов
+     * 
+     * @var string|null
+     */
+    protected $host;
+
+    /**
      * Create a new command instance.
      *
      * @return void
@@ -29,6 +37,7 @@ class GetDurationCallAudioFile extends Command
     public function __construct()
     {
         parent::__construct();
+        $this->host = env('CALL_RECORDS_SERVER', null);
     }
 
     /**
@@ -39,20 +48,49 @@ class GetDurationCallAudioFile extends Command
     public function handle()
     {
         set_time_limit(0);
-        $host = env('CALL_RECORDS_SERVER', null);
+        $start = microtime(true);
 
-        if (!$host) {
+        if (!$this->host) {
             echo "Адрес сервера с файлами не определен в конфиге\r\n";
             return 0;
         }
+        
+        $file = true;
 
-        $file = CallDetailRecords::where('duration', 0)->first();
+        while ($file) {
+            if ($file = CallDetailRecords::where('duration', 0)->whereNotNull('duration')->first())
+                $this->handleStep($file);
+        }
 
-        $cmd = "ffmpeg -i " . $host . $file->path;
-        $response = exec($cmd);
-
-        dd($response);
+        echo "Время выполнения скрипта: " . round(microtime(true) - $start, 4) . " сек.\r\n";
 
         return 0;
+    }
+
+    /**
+     * Проверка одного файла
+     * 
+     * @param \App\Models\Old\CallDetailRecords $file
+     * @return null
+     */
+    public function handleStep(CallDetailRecords $file)
+    {
+        $path = $this->host . $file->path;
+
+        $ffmpeg = FFMpeg::create();
+        $audio = $ffmpeg->open($path);
+
+        $duration = $audio->getFormat()->get('duration');
+
+        echo "[" . date("Y-m-d H:i:s") . "]\r\n";
+        echo "FILE {$file->path}\n";
+        echo "DURATION {$duration}\n";
+        echo "Обновлено\r\n\n";
+
+        $duration = (int) $duration;
+        $file->duration = $duration ? round($duration, 0) : null;
+        $file->save();
+
+        return null;
     }
 }

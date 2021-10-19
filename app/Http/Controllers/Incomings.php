@@ -154,6 +154,7 @@ class Incomings extends Controller
 
             $time = strtotime($data['DateTime'] ?? null);
             $path = $data['Bases'] ?? null;
+            $duration = (int) ($data['TimeCall'] ?? 0);
 
             if ($path) {
                 CallDetailRecords::create([
@@ -163,7 +164,7 @@ class Incomings extends Controller
                     'path' => $path,
                     'call_at' => $time ? date("Y-m-d H:i:s", $time) : now(),
                     'type' => "out",
-                    'duration' => (int) ($data['TimeCall'] ?? 0),
+                    'duration' => $duration,
                 ]);
             }
         }
