@@ -60,15 +60,15 @@ class GetDurationCallAudioFile extends Command
         }
 
         $file = true;
-        $id = 1316;
+        // $id = 1316;
 
         while ($file) {
 
-            // $file = CallDetailRecords::where('duration', 0)->whereNotNull('duration')->first();
-            $file = CallDetailRecords::where('id', '>', $id)
-                ->whereDate('created_at', "2021-10-19")
-                ->whereNotNull('duration')
-                ->first();
+            $file = CallDetailRecords::where('duration', 0)->whereNotNull('duration')->first();
+            // $file = CallDetailRecords::where('id', '>', $id)
+            //     ->whereDate('created_at', "2021-10-19")
+            //     ->whereNotNull('duration')
+            //     ->first();
 
             if ($file instanceof CallDetailRecords) {
                 $id = $file->id;
