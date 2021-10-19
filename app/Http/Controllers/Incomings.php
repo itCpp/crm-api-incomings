@@ -170,7 +170,8 @@ class Incomings extends Controller
                     'duration' => $duration,
                 ]);
 
-                UpdateDurationTime::dispatch($file);
+                if (!$duration)
+                    UpdateDurationTime::dispatch($file);
             }
         }
 
