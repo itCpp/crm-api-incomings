@@ -159,11 +159,13 @@ class Incomings extends Controller
             $duration = (int) ($data['TimeCall'] ?? 0);
             $direction = $data['Direction'] ?? "out";
 
-            if ($path) {
+            $phone = parent::checkPhone($data['Number'] ?? null, 3);
+
+            if ($path and $phone) {
 
                 $file = CallDetailRecords::create([
                     'event_id' => $event->id,
-                    'phone' => $data['Number'] ?? null,
+                    'phone' => $phone,
                     'extension' => $data['extension'] ?? null,
                     'path' => $path,
                     'call_at' => $time ? date("Y-m-d H:i:s", $time) : now(),
