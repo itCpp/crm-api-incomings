@@ -22,23 +22,14 @@ class AsteriskIncomingCallStartJob implements ShouldQueue
     public $eventId;
 
     /**
-     * Данные входящего события
-     * 
-     * @var array
-     */
-    public $eventData;
-
-    /**
      * Create a new job instance.
      *
      * @param int $id
-     * @param array $data
      * @return void
      */
-    public function __construct($id, $data)
+    public function __construct($id)
     {
         $this->eventId = $id;
-        $this->eventData = $data;
     }
 
     /**
@@ -48,6 +39,6 @@ class AsteriskIncomingCallStartJob implements ShouldQueue
      */
     public function handle()
     {
-        return Asterisk::autoSetPinForRequest($this->eventId, $this->eventData);
+        return Asterisk::autoSetPinForRequest($this->eventId);
     }
 }

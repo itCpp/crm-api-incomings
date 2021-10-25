@@ -19,8 +19,8 @@ class SipInternalExtension extends Model
         return $this->belongsToMany(
             SipExternalExtension::class,
             'sip_internal_to_external_extensions',
-            'external_id',
-            'internal_id'
+            'internal_id',
+            'external_id'
         );
     }
 }

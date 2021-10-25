@@ -12,6 +12,7 @@ use App\Models\Old\CallDetailRecords;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Http;
 
 class Asterisk extends Controller
 {
@@ -40,7 +41,7 @@ class Asterisk extends Controller
 
         // Начало звонка
         if ($type == "Start" and $direction == "in") {
-            AsteriskIncomingCallStartJob::dispatch($event->id, $data);
+            AsteriskIncomingCallStartJob::dispatch($event->id);
         }
 
         if ($type == "Hangup") {
@@ -90,14 +91,11 @@ class Asterisk extends Controller
      * Приём входящего вызова для автоматического назначения оператора на заявку
      * 
      * @param int $id
-     * @param array $data
      * @return null
      */
-    public static function autoSetPinForRequest($id, $data)
+    public static function autoSetPinForRequest($id)
     {
-        echo "[{$id}][{$data['ID']}][{$data['extension']}]\n";
-
-        self::autoSetPinForRequestOldCrm($data);
+        self::autoSetPinForRequestOldCrm($id);
 
         return null;
     }
@@ -105,22 +103,48 @@ class Asterisk extends Controller
     /**
      * Назначение оператора на заявку в старой CRM
      *
-     * @param array $data
+     * @param int $id
      * @return null
      */
-    public static function autoSetPinForRequestOldCrm($data)
+    public static function autoSetPinForRequestOldCrm($id)
     {
-        $extension = $data['extension'] ?? null;
-        $phone = parent::checkPhone($data['Number'] ?? null, 3);
+        $url = env('CRM_INCOMING_CALL', 'http://localhost:8000');
 
-        // Поиск адреса внутреннего номера
-        if (!$internal = SipInternalExtension::where('extension', $extension)->first())
-            return null;
+        try {
 
-        // Соотношение внетреннего номера с внешним
-        $externals = $internal->externals;
-        dump($externals);
+            $response = Http::withHeaders([
+                'Accept' => 'application/json',
+            ])
+                ->withOptions([
+                    'verify' => false, // Отключение проверки сетификата
+                ])
+                ->post($url, [
+                    'call_id' => $id,
+                ]);
 
+            if ($response->getStatusCode() != 200)
+                self::retryAutoSetPinForRequestOldCrm($row);
+        }
+        // Исключение при отсутсвии подключения к серверу
+        catch (\Illuminate\Http\Client\ConnectionException) {
+            self::retryAutoSetPinForRequestOldCrm($id);
+        }
+        // Исключение при ошибочном ответе
+        catch (\Illuminate\Http\Client\RequestException) {
+            self::retryAutoSetPinForRequestOldCrm($id);
+        }
+
+        return null;
+    }
+
+    /**
+     * Повторная отправка события
+     * 
+     * @param int $id
+     * @return null
+     */
+    public static function retryAutoSetPinForRequestOldCrm($id)
+    {
         return null;
     }
 }
