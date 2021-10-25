@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Http\Controllers\Call\Asterisk;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -14,13 +15,30 @@ class AsteriskIncomingCallStartJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
+     * Идентификатор события
+     * 
+     * @var int
+     */
+    public $eventId;
+
+    /**
+     * Данные входящего события
+     * 
+     * @var array
+     */
+    public $eventData;
+
+    /**
      * Create a new job instance.
      *
+     * @param int $id
+     * @param array $data
      * @return void
      */
-    public function __construct()
+    public function __construct($id, $data)
     {
-        //
+        $this->eventId = $id;
+        $this->eventData = $data;
     }
 
     /**
@@ -30,6 +48,6 @@ class AsteriskIncomingCallStartJob implements ShouldQueue
      */
     public function handle()
     {
-        //
+        return Asterisk::autoSetPinForRequest($this->eventId, $this->eventData);
     }
 }

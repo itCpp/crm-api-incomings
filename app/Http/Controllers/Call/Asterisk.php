@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Call;
 
+use App\Jobs\AsteriskIncomingCallStartJob;
 use App\Jobs\UpdateDurationTime;
 use App\Models\IncomingEvent;
 use App\Models\SipTimeEvent;
@@ -33,6 +34,11 @@ class Asterisk extends Controller
         ]);
 
         $type = $data['Call'] ?? null;
+
+        // Начало звонка
+        if ($type == "Start") {
+            AsteriskIncomingCallStartJob::dispatch($event->id, $data);
+        }
 
         if ($type == "Hangup") {
 
@@ -79,13 +85,15 @@ class Asterisk extends Controller
     }
 
     /**
-     * Приём входящего вызова
+     * Приём входящего вызова для автоматического назначения оператора на заявку
      * 
-     * @param \Illuminate\Http\Request
+     * @param int $id
+     * @param array $data
      * @return null
      */
-    public static function asteriskIncomingCallStart(Request $request)
+    public static function autoSetPinForRequest($id, $data)
     {
+        echo "[{$id}][{$data['ID']}][{$data['extension']}]";
         return null;
     }
 }
