@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Incomings;
+use App\Models\Old\CallDetailRecords;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -33,6 +35,8 @@ class SerialiseFilesFromName extends Command
         parent::__construct();
 
         $this->host = env('CALL_RECORDS_SERVER', null);
+
+        $this->drop = [];
     }
 
     /**
@@ -67,52 +71,71 @@ class SerialiseFilesFromName extends Command
         $bar->setMessage('Запуск скрипта');
         $bar->start();
 
-        $added = [];
-        $drop = [];
-
         foreach ($files as $file) {
 
             $bar->setMessage($file);
 
             $parce = explode("-", $file);
 
-            if (count($parce) >= 4) {
+            if (count($parce) == 4) {
 
                 $phone = null;
                 $type = null;
 
                 if ($check = Controller::checkPhone($parce[0], 3)) {
                     $phone = $check;
+                    $extension = $parce[1];
                     $type = "out";
                 } elseif ($check = Controller::checkPhone($parce[1], 3)) {
                     $phone = $check;
+                    $extension = $parce[0];
                     $type = "in";
                 }
 
-                $date = null;
-
-                
-
-
                 if (!$phone) {
-                    $drop[] = [
+                    $this->drop[] = [
+                        'count' => count($this->drop) + 1,
                         'name' => $file,
-                        'phone' => true,
-                        'data' => $parce,
+                        'message' => "<fg=red>Номер не определен</>",
                     ];
+                    continue;
                 }
+
+                $datetime = explode(".", $parce[2]);
+                $minuts = explode(".", $parce[3]);
+
+                if (count($datetime) != 4 or count($minuts) != 2) {
+                    $this->drop[] = [
+                        'count' => count($this->drop) + 1,
+                        'name' => $file,
+                        'message' => "<fg=red>Неправильная дата</>",
+                    ];
+                    continue;
+                }
+
+                $date = "{$datetime[0]}-{$datetime[1]}-{$datetime[2]} {$datetime[3]}:{$minuts[0]}:" . rand(0, 59);
+
+                $data = [
+                    'phone' => $phone,
+                    'extension' => $extension ?? null,
+                    'path' => "/call/{$file}",
+                    'call_at' => $date ?? null,
+                    'type' => $type,
+                    'duration' => 0,
+                ];
+
+                $this->createAndCheckAudio($data);
             } else {
-                $drop[] = [
+                $this->drop[] = [
+                    'count' => count($this->drop) + 1,
                     'name' => $file,
-                    'parce' => true,
-                    'data' => $parce,
+                    'message' => "<fg=red>Ошибка в наименовании</>",
                 ];
             }
 
             $bar->advance();
 
-            // usleep(300);
-
+            usleep(300);
         }
 
         $bar->setMessage("");
@@ -120,29 +143,44 @@ class SerialiseFilesFromName extends Command
 
         $this->newLine();
 
-        if (count($drop)) {
+        if (count($this->drop)) {
 
             $this->newLine();
             $this->error(" Пропущенные файлы ");
             $this->newLine();
 
-            foreach ($drop as $file) {
-
-                $message = "";
-
-                if (isset($file['phone']))
-                    $message = " <fg=red>Номер не определен</>";
-
-                if (isset($file['parce']))
-                    $message = " <fg=red>Ошибка наименования</>";
-
-                $this->line("{$file['name']}{$message}");
-
-            }
+            $this->table(
+                ['Count', 'File', 'Message'],
+                $this->drop,
+            );
         }
 
         $this->newLine();
 
         return 0;
+    }
+
+    /**
+     * Метод проверки аудиофайла
+     * 
+     * @param array $data
+     * @return null|string Текст ошибки проверки
+     */
+    public function createAndCheckAudio($data)
+    {
+        $file = CallDetailRecords::create($data);
+
+        try {
+            Incomings::updateDurationTime($file, $this->host);
+        } catch (\FFMpeg\Exception\RuntimeException $e) {
+
+            $error = $e->getMessage();
+
+            $this->drop[] = [
+                'count' => count($this->drop) + 1,
+                'name' => $file,
+                'message' => "<fg=red>{$error}</>",
+            ];
+        }
     }
 }
