@@ -26,6 +26,7 @@ class Asterisk extends Controller
         $event = IncomingEvent::create([
             'api_type' => "Asterisk",
             'ip' => $request->header('X-Remote-Addr') ?: $request->ip(),
+            'session_id' => $request->ID,
             'user_agent' => $request->header('X-User-Agent') ?: $request->header('User-Agent'),
             'request_data' => parent::encrypt($data),
         ]);

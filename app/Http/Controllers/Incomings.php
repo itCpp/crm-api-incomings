@@ -60,6 +60,7 @@ class Incomings extends Controller
         $event = IncomingEvent::create([
             'api_type' => "RT",
             'ip' => $request->header('X-Remote-Addr') ?: $request->ip(),
+            'session_id' => $request->session_id,
             'user_agent' => $request->header('X-User-Agent') ?: $request->header('User-Agent'),
             'request_data' => parent::encrypt($data),
         ]);

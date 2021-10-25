@@ -17,6 +17,7 @@ class IncomingEvent extends Model
     protected $fillable = [
         'api_type',
         'ip',
+        'session_id',
         'user_agent',
         'request_data',
     ];
