@@ -19,11 +19,7 @@ Route::any('/', function () {
     ]);
 });
 
-Route::get('/s{s}', function ($s) {
-    $row = \App\Models\IncomingEvent::find($s);
-    // dd($row);
-    return response()->json(\App\Http\Controllers\Controller::decrypt($row->request_data));
-});
+Route::get('/s{id}', 'Incomings@eventView');
 
 /** Обработка номера телефона и вывод его скрытой копии */
 Route::get('hidePhone', 'Phones@hidePhone');

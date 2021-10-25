@@ -48,9 +48,13 @@ class Controller extends BaseController
         $response = [];
 
         foreach ($data as $key => $row) {
+            try {
             $response[$key] = (is_array($row) or is_object($row))
                 ? Controller::decrypt($row)
                 : Crypt::decryptString($row);
+            } catch (\Illuminate\Contracts\Encryption\DecryptException) {
+                $response[$key] = $row;
+            }
         }
 
         return $response;

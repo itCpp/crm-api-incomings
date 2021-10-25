@@ -11,6 +11,7 @@ use App\Jobs\IncomingMangoJob;
 use App\Jobs\UpdateDurationTime;
 use App\Models\IncomingEvent;
 use App\Models\Old\CallDetailRecords;
+use Facade\FlareClient\View;
 use FFMpeg\FFMpeg;
 
 class Incomings extends Controller
@@ -208,5 +209,52 @@ class Incomings extends Controller
         $file->save();
 
         return $file;
+    }
+
+    /**
+     * Просмотр входящих событий
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return view
+     */
+    public static function eventView(Request $request, int $id)
+    {
+        $row = \App\Models\IncomingEvent::find($id);
+
+        if ($row and self::checkIpForDecrypt($request->ip()))
+            $row->request_data = parent::decrypt($row->request_data);
+
+        return view('event', [
+            'row' => $row ? $row->toArray() : null,
+            'next' => $id + 1,
+            'back' => $id - 1,
+            'id' => $id,
+            'ip' => $request->ip(),
+        ]);
+    }
+
+    /**
+     * Проверка IP для вывод расшифровывания события
+     * 
+     * @param string $ip
+     * @return bool
+     */
+    public static function checkIpForDecrypt(string $ip): bool
+    {
+        if (in_array($ip, ['91.230.53.106']))
+            return true;
+
+        $parts = [
+            '192.168.0.',
+            '172.16.255.',
+        ];
+
+        foreach ($parts as $part) {
+            if (strripos($ip, $part) !== false)
+                return true;
+        }
+
+        return false;
     }
 }
