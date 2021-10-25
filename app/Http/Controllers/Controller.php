@@ -21,13 +21,13 @@ class Controller extends BaseController
     public static function encrypt($data)
     {
         if (!is_array($data) and !is_object($data))
-            return $data;
+            return Crypt::encryptString($data);
 
         $response = [];
 
         foreach ($data as $key => $row) {
             $response[$key] = (is_array($row) or is_object($row))
-                ? Controller::encrypt($row)
+                ? self::encrypt($row)
                 : Crypt::encryptString($row);
         }
 
@@ -43,15 +43,15 @@ class Controller extends BaseController
     public static function decrypt($data)
     {
         if (!is_array($data) and !is_object($data))
-            return $data;
+            return Crypt::decryptString($data);
 
         $response = [];
 
         foreach ($data as $key => $row) {
             try {
-            $response[$key] = (is_array($row) or is_object($row))
-                ? Controller::decrypt($row)
-                : Crypt::decryptString($row);
+                $response[$key] = (is_array($row) or is_object($row))
+                    ? self::decrypt($row)
+                    : Crypt::decryptString($row);
             } catch (\Illuminate\Contracts\Encryption\DecryptException) {
                 $response[$key] = $row;
             }

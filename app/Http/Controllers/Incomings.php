@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Http\Controllers\Call\Asterisk;
 use App\Http\Controllers\Call\Mango;
 use App\Http\Controllers\Call\RT;
 use App\Http\Controllers\Text\IncomingText;
@@ -16,7 +17,6 @@ use FFMpeg\FFMpeg;
 
 class Incomings extends Controller
 {
-
     /**
      * Входящая текстовая заявка
      * 
@@ -25,7 +25,6 @@ class Incomings extends Controller
      */
     public static function incomingTextRequest(Request $request)
     {
-
         $event = IncomingEvent::create([
             'api_type' => "text",
             'ip' => $request->header('X-Remote-Addr') ?: $request->ip(),
@@ -50,7 +49,6 @@ class Incomings extends Controller
      */
     public static function incomingCallEventRT(Request $request)
     {
-
         $data = $request->all();
 
         preg_match('/sip\:(.*?)\@/i', $request->from_number, $matches);
@@ -83,7 +81,6 @@ class Incomings extends Controller
      */
     public static function incomingCallEventMango(Request $request, $type)
     {
-
         $data = $request->all();
         $data['type'] = $type;
 
@@ -115,7 +112,6 @@ class Incomings extends Controller
      */
     public static function events(Request $request)
     {
-
         $data = $request->all();
 
         $event = IncomingEvent::create([
@@ -140,51 +136,7 @@ class Incomings extends Controller
      */
     public static function asterisk(Request $request, ...$params)
     {
-
-        $data = $request->all();
-        $data['params'] = $params;
-
-        $event = IncomingEvent::create([
-            'api_type' => "Asterisk",
-            'ip' => $request->header('X-Remote-Addr') ?: $request->ip(),
-            'user_agent' => $request->header('X-User-Agent') ?: $request->header('User-Agent'),
-            'request_data' => parent::encrypt($data),
-        ]);
-
-        $type = $data['Call'] ?? null;
-
-        if ($type == "Hangup") {
-
-            $time = strtotime($data['DateTime'] ?? null);
-            $path = $data['Bases'] ?? null;
-            $duration = (int) ($data['TimeCall'] ?? 0);
-            $direction = $data['Direction'] ?? "out";
-
-            $phone = parent::checkPhone($data['Number'] ?? null, 3);
-
-            if ($path and $phone) {
-
-                $file = CallDetailRecords::create([
-                    'event_id' => $event->id,
-                    'phone' => $phone,
-                    'extension' => $data['extension'] ?? null,
-                    'path' => $path,
-                    'call_at' => $time ? date("Y-m-d H:i:s", $time) : now(),
-                    'type' => $direction,
-                    'duration' => $duration,
-                ]);
-
-                if (!$duration)
-                    UpdateDurationTime::dispatch($file);
-            }
-        }
-
-        return response()->json([
-            'message' => "Событие принято",
-            'event' => $event,
-            'data' => $data,
-            'params' => $params,
-        ]);
+        return Asterisk::asterisk($request, ...$params);
     }
 
     /**
