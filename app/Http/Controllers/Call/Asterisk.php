@@ -6,6 +6,8 @@ use App\Jobs\AsteriskIncomingCallStartJob;
 use App\Jobs\UpdateDurationTime;
 use App\Models\IncomingEvent;
 use App\Models\SipTimeEvent;
+use App\Models\SipExternalExtension;
+use App\Models\SipInternalExtension;
 use App\Models\Old\CallDetailRecords;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -34,9 +36,10 @@ class Asterisk extends Controller
         ]);
 
         $type = $data['Call'] ?? null;
+        $direction = $data['Direction'] ?? "out";
 
         // Начало звонка
-        if ($type == "Start") {
+        if ($type == "Start" and $direction == "in") {
             AsteriskIncomingCallStartJob::dispatch($event->id, $data);
         }
 
@@ -45,7 +48,6 @@ class Asterisk extends Controller
             $time = strtotime($data['DateTime'] ?? null);
             $path = $data['Bases'] ?? null;
             $duration = (int) ($data['TimeCall'] ?? 0);
-            $direction = $data['Direction'] ?? "out";
 
             $phone = parent::checkPhone($data['Number'] ?? null, 3);
 
@@ -93,7 +95,32 @@ class Asterisk extends Controller
      */
     public static function autoSetPinForRequest($id, $data)
     {
-        echo "[{$id}][{$data['ID']}][{$data['extension']}]";
+        echo "[{$id}][{$data['ID']}][{$data['extension']}]\n";
+
+        self::autoSetPinForRequestOldCrm($data);
+
+        return null;
+    }
+
+    /**
+     * Назначение оператора на заявку в старой CRM
+     *
+     * @param array $data
+     * @return null
+     */
+    public static function autoSetPinForRequestOldCrm($data)
+    {
+        $extension = $data['extension'] ?? null;
+        $phone = parent::checkPhone($data['Number'] ?? null, 3);
+
+        // Поиск адреса внутреннего номера
+        if (!$internal = SipInternalExtension::where('extension', $extension)->first())
+            return null;
+
+        // Соотношение внетреннего номера с внешним
+        $externals = $internal->externals;
+        dump($externals);
+
         return null;
     }
 }
