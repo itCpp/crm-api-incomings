@@ -31,7 +31,7 @@ class Asterisk extends Controller
         $event = IncomingEvent::create([
             'api_type' => "Asterisk",
             'ip' => $request->header('X-Remote-Addr') ?: $request->ip(),
-            'session_id' => $request->ID,
+            'session_id' => self::createCallId($request->ID, $request->extension),
             'user_agent' => $request->header('X-User-Agent') ?: $request->header('User-Agent'),
             'request_data' => parent::encrypt($data),
         ]);
@@ -85,6 +85,23 @@ class Asterisk extends Controller
             // 'data' => $data,
             // 'params' => $params,
         ]);
+    }
+
+    /**
+     * Формирование уникального id
+     * 
+     * @param string $id
+     * @param string $extension
+     * @return string
+     */
+    public static function createCallId($id, $extension)
+    {
+        $id = $id ?: microtime(1);
+
+        $call_id = substr(md5($extension), 0, 7);
+        $call_id .= "-" . substr(md5($id), 0, 20);
+
+        return $call_id;
     }
 
     /**
