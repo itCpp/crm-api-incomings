@@ -89,7 +89,10 @@ class Incomings extends Controller
             $data['data'] = json_decode($data['request']['json'], true);
 
         $data['phone'] = $data['data']['from']['number'] ?? null; // Номер звонящего
-        $data['sip'] = ($data['data']['to']['number'] ?? "0000") . "@mango"; // Номер звонящему
+        $data['sip'] = $data['data']['to']['number'] ?? "0000"; // Номер звонящему
+
+        if (strripos($data['sip'], "@") === false)
+            $data['sip'] .= "@mango";
 
         $event = IncomingEvent::create([
             'api_type' => "Mango",
