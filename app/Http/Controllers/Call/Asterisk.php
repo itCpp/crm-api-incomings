@@ -77,7 +77,7 @@ class Asterisk extends Controller
             'event_at' => now(),
         ]);
 
-        return Response::json([
+        return response()->json([
             'message' => "Event accepted",
             'event_id' => $event->id,
             'file_id' => $file->id ?? null,
