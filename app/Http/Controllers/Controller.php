@@ -71,7 +71,7 @@ class Controller extends BaseController
      * - 3 - 89001002030
      * - 4 - +79001002030
      * - 5 - +7 (***) ***-**-30
-     * - 6 - +7900*****30
+     * - 6 - +7********30
      * - 7 - 8 (900) 100-20-30
      * 
      * @return false|string  Вернет false в случае, если номер телефона не прошел валидацию
@@ -113,13 +113,17 @@ class Controller extends BaseController
         if ($type === 5)
             return "+7 (***) ***-**-" . substr($num, 9, 2);
 
-        // Возврат в формате +7900*****30
+        // Возврат в формате +7********30
         if ($type === 6)
             return "+7********" . substr($num, 9, 2);
 
         // Возврат в формате 8 (900) 100-20-30
         if ($type === 7)
             return "8 (" . substr($num, 1, 3) . ") " . substr($num, 4, 3) . "-" . substr($num, 7, 2) . "-" . substr($num, 9, 2);
+
+        // Возврат в формате +7900****030
+        if ($type === 8)
+            return "+7*******" . substr($num, 8, 3);
 
         // Возврат в формате 79001002030
         return $num;
