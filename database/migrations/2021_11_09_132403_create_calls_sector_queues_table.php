@@ -23,6 +23,8 @@ class CreateCallsSectorQueuesTable extends Migration
             $table->json('data_counters')->default(new Expression('(JSON_ARRAY())'))->comment('Подробный счетчик распределения звонков');
             $table->integer('counter')->default(0);
             $table->timestamps();
+
+            $table->index(['sip_server', 'date']);
         });
     }
 
