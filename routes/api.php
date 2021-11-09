@@ -28,3 +28,6 @@ Route::any('events', 'Incomings@events');
 
 /** Обработка событий внутреннего Asterisk */
 Route::any('asterisk/{a?}/{b?}/{c?}', 'Incomings@asterisk');
+
+/** Определение очереди распределения звонков */
+Route::any('getQueueSectorCall', 'Callcenter\SectorQueue@getSector');
