@@ -140,7 +140,7 @@ class Asterisk extends Controller
                 ]);
 
             if ($response->getStatusCode() != 200)
-                self::retryAutoSetPinForRequestOldCrm($row);
+                self::retryAutoSetPinForRequestOldCrm($id);
         }
         // Исключение при отсутсвии подключения к серверу
         catch (\Illuminate\Http\Client\ConnectionException) {
