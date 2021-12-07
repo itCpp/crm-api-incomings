@@ -31,3 +31,6 @@ Route::any('asterisk/{a?}/{b?}/{c?}', 'Incomings@asterisk');
 
 /** Определение очереди распределения звонков */
 Route::any('getQueueSectorCall', 'Callcenter\SectorQueue@getSector');
+
+/** Вывод внутреннего номера */
+Route::get('getCallerExtension', 'Callcenter\Extensions@getCallerExtension');
