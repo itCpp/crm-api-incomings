@@ -27,7 +27,11 @@ class Extensions extends Controller
         if ($first === "6")
             $request->number = substr($request->number, 1);
 
-        $session = CrmUsersToken::where('pin', $request->number)->where('deleted_at', null)->first();
+        $session = CrmUsersToken::where('pin', $request->number)
+            ->where('deleted_at', null)
+            ->whereDate('created_at', now())
+            ->orderBy('id', "DESC")
+            ->first();
 
         if (!$session)
             return $empty;
