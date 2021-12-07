@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Callcenter;
 
 use App\Http\Controllers\Controller;
 use App\Models\CallsSectorQueue;
+use App\Models\CallsSectorSettings;
 use Illuminate\Http\Request;
 
 class SectorQueue extends Controller
@@ -22,7 +23,28 @@ class SectorQueue extends Controller
      */
     public function __construct()
     {
-        $this->sectors = [
+        $only = CallsSectorSettings::whereOnlyQueue(1)->whereActive(1)->first();
+        $sectors = [];
+
+        if ($only) {
+            $sectors = [$only->toArray()];
+        } else {
+            $sectors = CallsSectorSettings::whereActive(1)->get()->map(function ($row) {
+                return $row->toArray();
+            })->toArray();
+        }
+
+        $this->sectors = count($sectors) ? $sectors : $this->getDefaultSectorsArray();
+    }
+
+    /**
+     * Стандартные значения секторов
+     * 
+     * @return array
+     */
+    public function getDefaultSectorsArray()
+    {
+        return [
             [
                 'id' => 2,
                 'name' => "А",
@@ -48,8 +70,6 @@ class SectorQueue extends Controller
 
         $data->counter++;
         $data = $this->getNextSectorId($data);
-
-        // dd($data->toArray());
 
         $data->save();
 
@@ -150,6 +170,7 @@ class SectorQueue extends Controller
         $data = null;
 
         foreach ($this->sectors as $sector) {
+
             if ($id === null or $return_next or ($sector['id'] == $id and !$next))
                 return $sector;
 
@@ -157,7 +178,7 @@ class SectorQueue extends Controller
                 $return_next = true;
         }
 
-        return $data ?: $this->getSectorData();
+        return $data ?? $this->getSectorData();
     }
 
     /**

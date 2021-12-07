@@ -113,6 +113,7 @@ class Asterisk extends Controller
     public static function autoSetPinForRequest($id)
     {
         self::autoSetPinForRequestOldCrm($id);
+        self::autoSetPinForRequestNewCrm($id);
 
         return null;
     }
@@ -140,7 +141,7 @@ class Asterisk extends Controller
                 ]);
 
             if ($response->getStatusCode() != 200)
-                self::retryAutoSetPinForRequestOldCrm($row);
+                self::retryAutoSetPinForRequestOldCrm($id);
         }
         // Исключение при отсутсвии подключения к серверу
         catch (\Illuminate\Http\Client\ConnectionException) {
@@ -162,6 +163,39 @@ class Asterisk extends Controller
      */
     public static function retryAutoSetPinForRequestOldCrm($id)
     {
+        return null;
+    }
+
+    /**
+     * Отправка события в новую црм
+     * 
+     * @param int $id Идентификатор события
+     * @return null
+     */
+    public static function autoSetPinForRequestNewCrm($id)
+    {
+        $url = env('CRM_INCOMING_REQUESTS', 'http://localhost:8000/api') . "/call_asterisk";
+
+        try {
+
+            $response = Http::withHeaders([
+                'Accept' => 'application/json',
+            ])
+                ->withOptions(['verify' => false])
+                ->post($url, ['call_id' => $id]);
+
+            // if ($response->getStatusCode() != 200)
+            //     self::retryAutoSetPinForRequestOldCrm($id);
+        }
+        // Исключение при отсутсвии подключения к серверу
+        catch (\Illuminate\Http\Client\ConnectionException) {
+            // self::retryAutoSetPinForRequestOldCrm($id);
+        }
+        // Исключение при ошибочном ответе
+        catch (\Illuminate\Http\Client\RequestException) {
+            // self::retryAutoSetPinForRequestOldCrm($id);
+        }
+
         return null;
     }
 }
