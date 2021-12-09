@@ -98,6 +98,8 @@ class Asterisk extends Controller
     {
         $id = $id ?: microtime(1);
 
+        return md5($id);
+
         $call_id = substr(md5($extension), 0, 7);
         $call_id .= "-" . substr(md5($id), 0, 20);
 
