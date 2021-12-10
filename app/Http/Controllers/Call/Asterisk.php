@@ -51,6 +51,7 @@ class Asterisk extends Controller
             $duration = (int) ($data['TimeCall'] ?? 0);
 
             $phone = parent::checkPhone($data['Number'] ?? null, 3);
+            $phone = $phone ?: $data['Number'];
 
             // Сохранение информации об аудиофайле записи разговора
             if ($path and $phone) {
