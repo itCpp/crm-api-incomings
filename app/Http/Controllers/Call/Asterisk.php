@@ -75,7 +75,7 @@ class Asterisk extends Controller
         // Запись временного события
         $tape = SipTimeEvent::create([
             'event_status' => $request->Call,
-            'extension' => $request->extension,
+            'extension' => $data['channel_extension'] ?? $request->extension,
             'event_at' => now(),
         ]);
 
