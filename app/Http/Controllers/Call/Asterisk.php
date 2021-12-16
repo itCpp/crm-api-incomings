@@ -43,8 +43,15 @@ class Asterisk extends Controller
         // Начало звонка
         if ($type == "Start" and $direction == "in") {
             AsteriskIncomingCallStartJob::dispatch($event->id);
+            self::writeSipRimeEvent($request->Call, $request->extension);
         }
 
+        // Ответ при переадресации
+        if ($type == "Answer" and $request->line) {
+            self::writeSipRimeEvent("Start", $request->line);
+        }
+
+        // Конец звонка
         if ($type == "Hangup") {
 
             $time = strtotime($data['DateTime'] ?? null);
@@ -72,21 +79,11 @@ class Asterisk extends Controller
             }
 
             if ($request->line) {
-                SipTimeEvent::create([
-                    'event_status' => $request->Call,
-                    'extension' => $request->line,
-                    'event_at' => now(),
-                ]);
+                self::writeSipRimeEvent($request->Call, $request->line);
             }
 
+            self::writeSipRimeEvent($request->Call, $request->extension);
         }
-
-        // Запись временного события
-        SipTimeEvent::create([
-            'event_status' => $request->Call,
-            'extension' => $data['channel_extension'] ?: $request->extension,
-            'event_at' => now(),
-        ]);
 
         return response()->json([
             'message' => "Event accepted",
@@ -95,6 +92,23 @@ class Asterisk extends Controller
             'ip' => $event->ip,
             // 'data' => $data,
             // 'params' => $params,
+        ]);
+    }
+
+    /**
+     * Запись временного события
+     * 
+     * @param string $status
+     * @param string $extension
+     * @param string $channel
+     * @return SipTimeEvent
+     */
+    public static function writeSipRimeEvent($status, $extension)
+    {
+        SipTimeEvent::create([
+            'event_status' => $status,
+            'extension' => $extension,
+            'event_at' => now(),
         ]);
     }
 
@@ -145,7 +159,7 @@ class Asterisk extends Controller
     {
         $explode = explode("-", $channel);
         $sip = $explode[0] ?? "";
-        
+
         return str_replace("SIP/", "", $sip);
     }
 
