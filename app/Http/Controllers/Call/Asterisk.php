@@ -26,6 +26,7 @@ class Asterisk extends Controller
     public static function asterisk(Request $request, ...$params)
     {
         $data = $request->all();
+        $data['channel_extension'] = self::parseChannel($data['channel'] ?? "");
         $data['params'] = $params;
 
         $event = IncomingEvent::create([
@@ -122,6 +123,21 @@ class Asterisk extends Controller
         // $call_id .= "-" . substr(md5($id), 0, 20);
 
         // return $call_id;
+    }
+
+    /**
+     * Метод преобразует строку информации о канале в sip extension
+     *          Пример `SIP/sar13-0000a907` в `sar13`
+     * 
+     * @param string
+     * @return string
+     */
+    public static function parseChannel($channel)
+    {
+        $explode = explode("-", $channel);
+        $sip = $explode[0] ?? "";
+        
+        return str_replace("SIP/", "", $sip);
     }
 
     /**
