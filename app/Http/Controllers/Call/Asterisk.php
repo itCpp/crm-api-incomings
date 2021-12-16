@@ -92,19 +92,36 @@ class Asterisk extends Controller
      * Формирование уникального id
      * 
      * @param string $id
-     * @param string $extension
+     * @param string|null $extension
      * @return string
      */
-    public static function createCallId($id, $extension)
+    public static function createCallId($id, $extension = null)
     {
         $id = $id ?: microtime(1);
 
-        return md5($id);
+        $parts = explode(".", $id);
+        $hash = "";
 
-        $call_id = substr(md5($extension), 0, 7);
-        $call_id .= "-" . substr(md5($id), 0, 20);
+        foreach ($parts as $part) {
+            $hash .= md5($part);
+        }
+        $hash .= md5($hash);
+        $hash .= md5($hash);
 
-        return $call_id;
+        $uuid = "";
+
+        $uuid .= substr($hash, 0, 8);
+        $uuid .= "-" . substr($hash, 7, 4);
+        $uuid .= "-4" . substr($hash, 11, 3);
+        $uuid .= "-8" . substr($hash, 15, 3);
+        $uuid .= "-" . substr($hash, 19, 12);
+
+        return $uuid;
+
+        // $call_id = substr(md5($extension), 0, 7);
+        // $call_id .= "-" . substr(md5($id), 0, 20);
+
+        // return $call_id;
     }
 
     /**

@@ -19,7 +19,7 @@ Route::any('/', function () {
     ]);
 });
 
-Route::get('/s{id}', 'Incomings@eventView');
+// Route::get('/event/{id}', 'Incomings@eventView');
 
 /** Обработка номера телефона и вывод его скрытой копии */
 Route::get('hidePhone', 'Phones@hidePhone');
