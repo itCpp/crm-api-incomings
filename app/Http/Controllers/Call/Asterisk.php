@@ -70,12 +70,21 @@ class Asterisk extends Controller
                 if (!$duration)
                     UpdateDurationTime::dispatch($file);
             }
+
+            if ($request->line) {
+                SipTimeEvent::create([
+                    'event_status' => $request->Call,
+                    'extension' => $request->line,
+                    'event_at' => now(),
+                ]);
+            }
+
         }
 
         // Запись временного события
-        $tape = SipTimeEvent::create([
+        SipTimeEvent::create([
             'event_status' => $request->Call,
-            'extension' => $data['channel_extension'] ?? $request->extension,
+            'extension' => $data['channel_extension'] ?: $request->extension,
             'event_at' => now(),
         ]);
 
@@ -83,7 +92,7 @@ class Asterisk extends Controller
             'message' => "Event accepted",
             'event_id' => $event->id,
             'file_id' => $file->id ?? null,
-            'tape' => $tape->ip ?? null,
+            'ip' => $event->ip,
             // 'data' => $data,
             // 'params' => $params,
         ]);
