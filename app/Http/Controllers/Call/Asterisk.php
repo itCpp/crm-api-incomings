@@ -41,9 +41,11 @@ class Asterisk extends Controller
         $direction = $data['Direction'] ?? "out";
 
         // Начало звонка
-        if ($type == "Start" and $direction == "in") {
-            AsteriskIncomingCallStartJob::dispatch($event->id);
+        if ($type == "Start") {
             self::writeSipRimeEvent($request->Call, $request->extension);
+
+            if ($direction == "in")
+                AsteriskIncomingCallStartJob::dispatch($event->id);
         }
 
         // Ответ при переадресации
