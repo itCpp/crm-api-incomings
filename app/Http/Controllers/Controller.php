@@ -42,22 +42,41 @@ class Controller extends BaseController
      */
     public static function decrypt($data)
     {
-        if (!is_array($data) and !is_object($data))
-            return Crypt::decryptString($data);
+        if ($data === null or $data == "" or !$data)
+            return $data;
+
+        if (!in_array(gettype($data), ['array', 'object'])) {
+            try {
+                Crypt::decryptString($data);
+            } catch (\Illuminate\Contracts\Encryption\DecryptException) {
+                return $data;
+            }
+        }
 
         $response = [];
 
         foreach ($data as $key => $row) {
-            try {
-                $response[$key] = (is_array($row) or is_object($row))
-                    ? self::decrypt($row)
-                    : Crypt::decryptString($row);
-            } catch (\Illuminate\Contracts\Encryption\DecryptException) {
-                $response[$key] = $row;
-            }
+            $response[$key] = self::decrypt($row);
         }
 
         return $response;
+
+        // if (!is_array($data) and !is_object($data))
+        //     return Crypt::decryptString($data);
+
+        // $response = [];
+
+        // foreach ($data as $key => $row) {
+        //     try {
+        //         $response[$key] = (is_array($row) or is_object($row))
+        //             ? self::decrypt($row)
+        //             : Crypt::decryptString($row);
+        //     } catch (\Illuminate\Contracts\Encryption\DecryptException) {
+        //         $response[$key] = $row;
+        //     }
+        // }
+
+        // return $response;
     }
 
     /**
