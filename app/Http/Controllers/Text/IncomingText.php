@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Http;
 
 class IncomingText extends Controller
 {
-
     /**
      * Количество попыток отправки события при неудачном ответе
      * 
@@ -24,8 +23,8 @@ class IncomingText extends Controller
      * 
      * @var int Минуты
      */
-    public static $delay = 2;
-    
+    public static $delay = 1;
+
     /**
      * Обработка входящего события
      * 
@@ -34,7 +33,6 @@ class IncomingText extends Controller
      */
     public static function event(IncomingEvent $event)
     {
-
         $row = IncomingTextRequest::create([
             'incoming_event_id' => $event->id,
         ]);
@@ -42,7 +40,6 @@ class IncomingText extends Controller
         IncomingTextJob::dispatch($row);
 
         return $row;
-
     }
 
     /**
@@ -53,21 +50,22 @@ class IncomingText extends Controller
      */
     public static function send(IncomingTextRequest $row)
     {
-
         // Адрес сервера-принимальщика
-        $url = env('CRM_INCOMING_TEXT_REQUESTS', 'http://localhost:8000'); 
+        $url = env('CRM_INCOMING_TEXT_REQUESTS', 'http://localhost:8000');
+
+        $phone = parent::decrypt($row->event->request_data->phone ?? null);
 
         try {
 
             $response = Http::withHeaders([
                 'Accept' => 'application/json',
             ])
-            ->withOptions([
-                'verify' => false, // Отключение проверки сетификата
-            ])
-            ->post($url, [
-                'text' => $row->id,
-            ]);
+                ->withOptions([
+                    'verify' => false, // Отключение проверки сетификата
+                ])
+                ->post($url, [
+                    'text' => $row->id,
+                ]);
 
             $row->request_count++;
             $row->response_code = $response->getStatusCode();
@@ -76,9 +74,11 @@ class IncomingText extends Controller
 
             $row->save();
 
-            if ($row->response_code != 200)
-                IncomingText::retry($row);
-
+            if ($row->response_code != 200) {
+                self::retry($row);
+            } else if ($row->response_code == 200 and !empty($row->event->request_data->_autocall)) {
+                (new AutoCall($row))->send($phone);
+            }
         }
         // Исключение при отсутсвии подключения к серверу
         catch (\Illuminate\Http\Client\ConnectionException $e) {
@@ -93,8 +93,7 @@ class IncomingText extends Controller
 
             $row->save();
 
-            IncomingText::retry($row);
-
+            self::retry($row);
         }
         // Исключение при ошибочном ответе
         catch (\Illuminate\Http\Client\RequestException $e) {
@@ -110,12 +109,10 @@ class IncomingText extends Controller
 
             $row->save();
 
-            IncomingText::retry($row);
-
+            self::retry($row);
         }
 
         return null;
-
     }
 
     /**
@@ -126,12 +123,9 @@ class IncomingText extends Controller
      */
     public static function retry(IncomingTextRequest $row)
     {
-
         if ($row->request_count < self::$retry)
             IncomingTextJob::dispatch($row)->delay(now()->addMinutes(self::$delay));
 
         return null;
-
     }
-
 }

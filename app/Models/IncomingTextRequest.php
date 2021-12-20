@@ -30,4 +30,13 @@ class IncomingTextRequest extends Model
         'response_data' => 'object',
     ];
 
+    /**
+     * Отношения к событию
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function event()
+    {
+        return $this->belongsTo(IncomingEvent::class, 'incoming_event_id');
+    }
 }
