@@ -125,13 +125,9 @@ class Asterisk extends Controller
     {
         $id = $id ?: microtime(1);
 
-        $parts = explode(".", $id);
         $hash = "";
-
-        foreach ($parts as $part) {
-            $hash .= md5($part);
-        }
-        $hash .= md5($hash);
+        $hash .= md5($id);
+        $hash .= md5($id . $hash);
         $hash .= md5($hash);
 
         $uuid = "";
