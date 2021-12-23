@@ -6,6 +6,7 @@ use Exception;
 use App\Http\Controllers\Controller;
 use App\Models\IncomingTextRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AutoCall extends Controller
 {
@@ -50,6 +51,8 @@ class AutoCall extends Controller
         $errno = 0;
         $errstr = "Неизвестная ошибка";
 
+        Log::channel('autocall')->info("Start autocall $phone");
+
         $conn = fsockopen($host, $port, $errno, $errstr, 10)
             or throw new Exception("Connection to [$host]:[$port] failed");
 
@@ -87,5 +90,7 @@ class AutoCall extends Controller
         usleep(500);
 
         fclose($conn);
+
+        Log::channel('autocall')->info("Sent commands autocall $num to $cid");
     }
 }

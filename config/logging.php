@@ -54,6 +54,13 @@ return [
             'days' => 14,
         ],
 
+        'autocall' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/calls/autocall.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 30,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
