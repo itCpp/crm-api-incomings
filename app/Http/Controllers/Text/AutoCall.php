@@ -78,7 +78,7 @@ class AutoCall extends Controller
         fputs($conn, "Channel: SIP/$cid\r\n");
         fputs($conn, "Callerid: $cid\r\n");
         fputs($conn, "Timeout: 15000\r\n");
-        fputs($conn, "Context: test\r\n");
+        fputs($conn, "Context: fondsp\r\n");
         fputs($conn, "Exten: $num\r\n");
         fputs($conn, "Priority: 1\r\n\r\n");
         fputs($conn, "Async: yes\r\n\r\n");

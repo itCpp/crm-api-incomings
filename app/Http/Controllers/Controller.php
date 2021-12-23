@@ -47,7 +47,7 @@ class Controller extends BaseController
 
         if (!in_array(gettype($data), ['array', 'object'])) {
             try {
-                Crypt::decryptString($data);
+                return Crypt::decryptString($data);
             } catch (\Illuminate\Contracts\Encryption\DecryptException) {
                 return $data;
             }
