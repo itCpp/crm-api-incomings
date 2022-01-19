@@ -34,3 +34,10 @@ Route::any('getQueueSectorCall', 'Callcenter\SectorQueue@getSector');
 
 /** Вывод внутреннего номера */
 Route::get('getCallerExtension', 'Callcenter\Extensions@getCallerExtension');
+
+/** Маршрутизация телеграма */
+Route::group(['prefix' => 'telegram{token}'], function () {
+
+    /** Приём входящих сообщений */
+    Route::any('incoming', 'Telegram\Telegram@incoming');
+});
