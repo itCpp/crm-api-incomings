@@ -70,8 +70,11 @@ class Incoming extends Controller
         $created_at = !isset($date)
             ? now() : Carbon::createFromTimestamp($date);
 
+        if (isset($create['message']))
+            $create['message'] = $this->encrypt($create['message']);
+
         TelegramIncoming::create(array_merge($create, [
-            'request_data' => $data,
+            'request_data' => $this->encrypt($data),
             'created_at' => $created_at,
         ]));
 
