@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Telegram;
 
 use App\Http\Controllers\Controller;
+use App\Models\TelegramIncoming;
 use Illuminate\Http\Request;
 
 class Telegram extends Controller
@@ -15,6 +16,10 @@ class Telegram extends Controller
      */
     public function incoming(Request $request)
     {
+        TelegramIncoming::create([
+            'request_data' => $request->all(),
+        ]);
+
         return response()->json([
             'message' => "Incoming message accepted",
         ]);
