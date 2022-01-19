@@ -18,7 +18,9 @@ class TelegramIncoming extends Model
         'message_id',
         'chat_id',
         'from_id',
+        'message',
         'request_data',
+        'created_at',
     ];
 
     /**
