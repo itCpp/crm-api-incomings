@@ -39,5 +39,5 @@ Route::get('getCallerExtension', 'Callcenter\Extensions@getCallerExtension');
 Route::group(['prefix' => 'telegram{token}'], function () {
 
     /** Приём входящих сообщений */
-    Route::any('incoming', 'Telegram\Telegram@incoming');
+    Route::any('incoming', 'Telegram\Incoming');
 });
