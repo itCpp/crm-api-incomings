@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers\Telegram\Callbacks;
 
-use App\Http\Controllers\Telegram\Telegram;
-
 class Handler
 {
     /**
@@ -13,6 +11,7 @@ class Handler
      */
     protected $commands = [
         \App\Http\Controllers\Telegram\Commands\HrPaymentApprove::class,
+        \App\Http\Controllers\Telegram\Commands\HrPaymentReject::class,
     ];
 
     /**

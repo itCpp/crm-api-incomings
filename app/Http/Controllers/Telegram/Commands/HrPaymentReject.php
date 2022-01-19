@@ -5,21 +5,21 @@ namespace App\Http\Controllers\Telegram\Commands;
 use App\Http\Controllers\Telegram\Telegram;
 use Illuminate\Support\Facades\Http;
 
-class HrPaymentApprove extends Telegram
+class HrPaymentReject extends Telegram
 {
     /**
      * Текст комманды
      * 
      * @var string
      */
-    public $command = "/hr-payment-approve";
+    public $command = "/hr-payment-reject";
 
     /**
      * Описание команды
      * 
      * @var string
      */
-    public $description = "Подтверждение запроса на выплату отдела кадров";
+    public $description = "Отклонение запроса на выплату отдела кадров";
 
     /**
      * Параметры комманды
@@ -89,7 +89,7 @@ class HrPaymentApprove extends Telegram
                 ])
                 ->post($url, [
                     'id' => $this->attributes[0] ?? null,
-                    'confirm' => "approve",
+                    'confirm' => "reject",
                     'chat_id' => $this->chat_id,
                 ]);
 
