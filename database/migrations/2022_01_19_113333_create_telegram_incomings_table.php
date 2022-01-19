@@ -20,6 +20,8 @@ class CreateTelegramIncomingsTable extends Migration
             $table->bigInteger('chat_id')->nullable();
             $table->bigInteger('from_id')->nullable();
             $table->text('message')->nullable();
+            $table->tinyInteger('is_callback_query')->default(0)->comment('Обратная функция');
+            $table->tinyInteger('is_edited_message')->default(0)->comment('Редактирование сообщения');
             $table->json('request_data')->default(new Expression('(JSON_ARRAY())'));
             $table->timestamps();
         });
