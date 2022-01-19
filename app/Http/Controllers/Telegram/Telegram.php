@@ -54,7 +54,15 @@ class Telegram extends Controller
 
             $date = $data['message']['date'] ?? null;
         }
-        
+        // События в группах
+        else if ($data['my_chat_member'] ?? null) {
+            $create = [
+                'chat_id' => $data['my_chat_member']['chat']['id'] ?? null,
+                'from_id' => $data['my_chat_member']['from']['id'] ?? null,
+            ];
+
+            $date = $data['my_chat_member']['date'] ?? null;
+        }
 
         $created_at = !isset($date)
             ? now() : Carbon::createFromTimestamp($date);
