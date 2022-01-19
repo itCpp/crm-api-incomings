@@ -23,8 +23,8 @@ class Telegram extends Controller
 
         TelegramIncoming::create([
             'message_id' => $data['message']['message_id'] ?? null,
-            'chat_id' => $data['chat']['id'] ?? null,
-            'from_id' => $data['from']['id'] ?? null,
+            'chat_id' => $data['message']['chat']['id'] ?? null,
+            'from_id' => $data['message']['from']['id'] ?? null,
             'message' => $data['message']['text'] ?? null,
             'request_data' => $data,
             'created_at' => $created_at,
