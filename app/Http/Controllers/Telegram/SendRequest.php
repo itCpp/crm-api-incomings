@@ -45,7 +45,12 @@ trait SendRequest
                 ])
                 ->post($url, $data);
 
-            $json = (array) $response->json();
+            $return = (array) $response->json();
+
+            if ($response->ok())
+                $json = Controller::encrypt($return);
+            else
+                $json = $return;
 
             $outgoing->response_code = $response->status();
         } catch (Exception $e) {
@@ -57,10 +62,10 @@ trait SendRequest
         }
 
         $outgoing->created_at = now();
-        $outgoing->response_data = Controller::encrypt($json ?? []);
+        $outgoing->response_data = $json ?? [];
         $outgoing->save();
 
-        return $outgoing->response_data;
+        return $return ?? [];
     }
 
     /**
