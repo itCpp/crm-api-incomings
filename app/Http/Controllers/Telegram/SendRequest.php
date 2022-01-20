@@ -27,4 +27,31 @@ trait SendRequest
 
         return $response->json();
     }
+
+    /**
+     * Отправка запроса на сервер БАЗЫ
+     * 
+     * @param string $url
+     * @param array $data
+     * @return bool
+     */
+    public function sendBase($url, $data)
+    {
+        try {
+            Http::accept('application/json')
+                ->withOptions([
+                    'verify' => false, // Отключение проверки сетификата
+                ])
+                ->withHeaders([
+                    'User-Agent' => Telegram::getUserAgent(),
+                    'Authorization' => "Telegram Incominget|" . encrypt($this->chat_id ?? ""),
+                    'Accept' => 'application/json',
+                ])
+                ->post($url, $data);
+
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
 }

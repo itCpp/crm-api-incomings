@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Telegram\Commands;
 
 use App\Http\Controllers\Telegram\Telegram;
-use Illuminate\Support\Facades\Http;
 
 class HrPaymentReject extends Telegram
 {
@@ -55,9 +54,16 @@ class HrPaymentReject extends Telegram
      */
     public function handle()
     {
-        if (!$this->sendBase()) {
+        $url = env("BASE_API_SERVER", "http://127.0.0.1:8000") . "/api/base/hr/payments/confirm";
+        $data = [
+            'id' => $this->attributes[0] ?? null,
+            'confirm' => "reject",
+            'chat_id' => $this->chat_id,
+        ];
 
-            $id = $this->attributes[0] ?? "б.н.";
+        if (!$this->sendBase($url, $data)) {
+
+            $id = $data['id'] ?: "б.н.";
 
             $this->sendMessage([
                 'chat_id' => $this->chat_id,
@@ -66,36 +72,5 @@ class HrPaymentReject extends Telegram
         }
 
         return null;
-    }
-
-    /**
-     * Отправка запроса на сервер БАЗЫ
-     * 
-     * @return bool
-     */
-    public function sendBase()
-    {
-        $url = env("BASE_API_SERVER", "http://127.0.0.1:8000") . "/api/base/hr/payments/confirm";
-
-        try {
-            Http::accept('application/json')
-                ->withOptions([
-                    'verify' => false, // Отключение проверки сетификата
-                ])
-                ->withHeaders([
-                    'User-Agent' => Telegram::getUserAgent(),
-                    'Authorization' => "Telegram Incominget|" . encrypt($this->chat_id),
-                    'Accept' => 'application/json',
-                ])
-                ->post($url, [
-                    'id' => $this->attributes[0] ?? null,
-                    'confirm' => "reject",
-                    'chat_id' => $this->chat_id,
-                ]);
-
-            return true;
-        } catch (\Exception $e) {
-            return false;
-        }
     }
 }
