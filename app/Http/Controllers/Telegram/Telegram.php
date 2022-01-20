@@ -71,4 +71,14 @@ class Telegram
     {
         return self::APP_NAME . " v" . self::VERSION;
     }
+
+    /**
+     * Выводит токен текущего бота
+     * 
+     * @return string
+     */
+    public function getToken()
+    {
+        return $this->token;
+    }
 }
