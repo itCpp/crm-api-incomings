@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Telegram;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Telegram\Jobs\CallbackQueryJob;
+use App\Http\Controllers\Telegram\Jobs\ReplyMessagesJob;
+use App\Models\TelegramChatIdForward;
 use App\Models\TelegramIncoming;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -66,6 +68,17 @@ class Incoming extends Controller
 
             $date = $data['my_chat_member']['date'] ?? null;
         }
+        // Канал
+        else if ($data['channel_post'] ?? null) {
+            $create = [
+                'chat_id' => $data['channel_post']['chat']['id'] ?? null,
+                'from_id' => $data['channel_post']['sender_chat']['id'] ?? null,
+                'message_id' => $data['channel_post']['message_id'] ?? null,
+                'message' => $data['channel_post']['text'] ?? null,
+            ];
+
+            $date = $data['channel_post']['date'] ?? null;
+        }
 
         $created_at = !isset($date)
             ? now() : Carbon::createFromTimestamp($date);
@@ -73,10 +86,25 @@ class Incoming extends Controller
         if (isset($create['message']))
             $create['message'] = $this->encrypt($create['message']);
 
-        TelegramIncoming::create(array_merge($create, [
+        $incoming = TelegramIncoming::create(array_merge($create, [
             'request_data' => $this->encrypt($data),
             'created_at' => $created_at,
         ]));
+
+        $forward = TelegramChatIdForward::where('from_chat_id', $incoming->chat_id)
+            ->orderBy('from_chat_id')
+            ->get()
+            ->map(function ($row) use ($incoming) {
+                return [
+                    'chat_id' => $row->to_chat_id,
+                    'from_chat_id' => $incoming->chat_id,
+                    'message_id' => $incoming->message_id,
+                ];
+            })
+            ->toArray();
+
+        if (count($forward))
+            ReplyMessagesJob::dispatch(...$forward);
 
         return response()->json([
             'message' => "Incoming message accepted",

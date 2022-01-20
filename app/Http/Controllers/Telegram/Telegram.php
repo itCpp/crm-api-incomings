@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Telegram;
 
 use App\Exceptions\TelegramBotException;
 use App\Http\Controllers\Telegram\Methods\SendMessage;
+use App\Http\Controllers\Telegram\Methods\ForwardMessage;
 
 class Telegram
 {
@@ -48,6 +49,17 @@ class Telegram
     public function sendMessage($data)
     {
         return (new SendMessage($this))($data);
+    }
+
+    /**
+     * Пересылка сообщения
+     * 
+     * @param array $data
+     * @return array
+     */
+    public function forwardMessage($data)
+    {
+        return (new ForwardMessage($this))($data);
     }
 
     /**
