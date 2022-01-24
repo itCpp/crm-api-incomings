@@ -22,6 +22,9 @@ trait SendRequest
         $outgoing->request_data = Controller::encrypt($data);
         $outgoing->bot_token = Controller::encrypt($this->getToken());
 
+        if (!empty($data['chat_id']))
+            $outgoing->chat_id = $data['chat_id'];
+
         foreach (debug_backtrace() as $row) {
 
             $class = $row['class'] ?? null;

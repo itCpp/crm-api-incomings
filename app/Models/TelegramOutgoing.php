@@ -17,6 +17,7 @@ class TelegramOutgoing extends Model
     protected $fillable = [
         'method',
         'bot_token',
+        'chat_id',
         'request_data',
         'response_code',
         'response_data',
