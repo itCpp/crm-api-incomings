@@ -16,6 +16,7 @@ class TelegramIncoming extends Model
      */
     protected $fillable = [
         'message_id',
+        'token',
         'chat_id',
         'from_id',
         'message',
