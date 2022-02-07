@@ -89,6 +89,7 @@ class Incoming extends Controller
         $incoming = TelegramIncoming::create(array_merge($create, [
             'request_data' => $this->encrypt($data),
             'created_at' => $created_at,
+            'token' => $request->token ? md5($request->token . env('APP_KEY')) : null,
         ]));
 
         $forward = TelegramChatIdForward::where('from_chat_id', $incoming->chat_id)
