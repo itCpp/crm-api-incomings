@@ -11,9 +11,12 @@ use App\Http\Controllers\Text\IncomingText;
 use App\Jobs\IncomingMangoJob;
 use App\Jobs\UpdateDurationTime;
 use App\Models\IncomingEvent;
+use App\Models\Crm\CallDetailRecord as CrmCallDetailRecord;
 use App\Models\Old\CallDetailRecords;
+use Exception;
 use Facade\FlareClient\View;
 use FFMpeg\FFMpeg;
+use Illuminate\Support\Facades\Http;
 
 class Incomings extends Controller
 {
@@ -163,6 +166,15 @@ class Incomings extends Controller
 
         $file->duration = $duration ? round($duration, 0) : null;
         $file->save();
+
+        $url = env('CRM_API_SERVER', 'http://localhost:8000');
+
+        try {
+            Http::withHeaders(['Accept' => 'application/json'])
+                ->withOptions(['verify' => false])
+                ->post($url . "/api/eventHandling/callDetailRecords", $file->toArray());
+        } catch (Exception $e) {
+        }
 
         return $file;
     }
