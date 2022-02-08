@@ -172,7 +172,7 @@ class Incomings extends Controller
         try {
             Http::withHeaders(['Accept' => 'application/json'])
                 ->withOptions(['verify' => false])
-                ->post($url . "/api/eventHandling/callDetailRecords", $file->toArray());
+                ->post($url . "/api/events/callDetailRecord", $file->toArray());
         } catch (Exception $e) {
         }
 
