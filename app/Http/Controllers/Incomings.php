@@ -24,7 +24,7 @@ class Incomings extends Controller
      * Входящая текстовая заявка
      * 
      * @param \Illuminate\Http\Request $request
-     * @return response
+     * @return \Illuminate\Http\JsonResponse
      */
     public static function incomingTextRequest(Request $request)
     {
@@ -48,7 +48,7 @@ class Incomings extends Controller
      * но возможно не всегда...
      * 
      * @param \Illuminate\Http\Request $request
-     * @return response
+     * @return \Illuminate\Http\JsonResponse
      */
     public static function incomingCallEventRT(Request $request)
     {
@@ -81,7 +81,7 @@ class Incomings extends Controller
      * 
      * @param \Illuminate\Http\Request $request
      * @param string $type Тип события
-     * @return response
+     * @return \Illuminate\Http\JsonResponse
      */
     public static function incomingCallEventMango(Request $request, $type)
     {
@@ -115,7 +115,7 @@ class Incomings extends Controller
      * Запись любого события
      * 
      * @param \Illuminate\Http\Request $request
-     * @return response
+     * @return \Illuminate\Http\JsonResponse
      */
     public static function events(Request $request)
     {
@@ -139,7 +139,7 @@ class Incomings extends Controller
      * 
      * @param \Illuminate\Http\Request $request
      * @param array $params
-     * @return response
+     * @return \Illuminate\Http\JsonResponse
      */
     public static function asterisk(Request $request, ...$params)
     {

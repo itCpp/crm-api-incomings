@@ -6,11 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Jobs\IncomingRTJob;
 use App\Models\IncomingCallRequest;
 use App\Models\IncomingEvent;
+use Exception;
 use Illuminate\Support\Facades\Http;
 
 class RT extends Controller
 {
-
     /**
      * Количество попыток отправки события при неудачном ответе
      * 
@@ -23,7 +23,7 @@ class RT extends Controller
      * 
      * @var int Минуты
      */
-    public static $delay = 2;
+    public static $delay = 1;
 
     /**
      * Обработка входящего события
@@ -33,7 +33,6 @@ class RT extends Controller
      */
     public static function event(IncomingEvent $event)
     {
-
         $row = IncomingCallRequest::create([
             'api_type' => $event->api_type,
             'incoming_event_id' => $event->id,
@@ -42,32 +41,24 @@ class RT extends Controller
         IncomingRTJob::dispatch($row);
 
         return $row;
-
     }
 
     /**
-     * Отправка события о входящем звоноке
+     * Отправка события о входящем звонке
      * 
      * @param \App\Models\IncomingCallRequest $row
      * @return null
      */
     public static function newCall(IncomingCallRequest $row)
     {
-
-        // Адрес сервера-принимальщика
-        $url = env('CRM_INCOMING_REQUESTS', 'http://localhost:8000'); 
+        /** Адрес сервера-принимальщика */
+        $url = env('CRM_INCOMING_REQUESTS', 'http://localhost:8000');
 
         try {
 
-            $response = Http::withHeaders([
-                'Accept' => 'application/json',
-            ])
-            ->withOptions([
-                'verify' => false, // Отключение проверки сетификата
-            ])
-            ->post($url, [
-                'call' => $row->id,
-            ]);
+            $response = Http::withHeaders(['Accept' => 'application/json'])
+                ->withOptions(['verify' => false])
+                ->post($url, ['call' => $row->id]);
 
             $row->request_count++;
             $row->response_code = $response->getStatusCode();
@@ -78,9 +69,8 @@ class RT extends Controller
 
             if ($row->response_code != 200)
                 self::retry($row);
-
         }
-        // Исключение при отсутсвии подключения к серверу
+        /** Исключение при отсутсвии подключения к серверу */
         catch (\Illuminate\Http\Client\ConnectionException $e) {
 
             $row->request_count++;
@@ -92,9 +82,8 @@ class RT extends Controller
             $row->save();
 
             self::retry($row);
-
         }
-        // Исключение при ошибочном ответе
+        /** Исключение при ошибочном ответе */
         catch (\Illuminate\Http\Client\RequestException $e) {
 
             $row->request_count++;
@@ -107,11 +96,48 @@ class RT extends Controller
             $row->save();
 
             self::retry($row);
-
         }
 
-        return null;
+        /** Отправка запроса в старую црм */
+        if (env("CRM_OLD_WORK"))
+            self::newCallForOld($row);
 
+        return null;
+    }
+
+    /**
+     * Отправка запроса в старую ЦРМ
+     * 
+     * @param \App\Models\IncomingCallRequest $row
+     * @return null
+     */
+    public static function newCallForOld(IncomingCallRequest $row)
+    {
+        $url = env('CRM_OLD_API_SERVER', 'http://localhost:8000');
+        $old = [];
+
+        try {
+            $response = Http::withHeaders(['Accept' => 'application/json'])
+                ->withOptions(['verify' => false])
+                ->post($url . "/api/eventHandling/callFromIncominget", ['call' => $row->id]);
+
+            $old['response_code'] = $response->getStatusCode();
+            $old['response'] = $response->json();
+        } catch (Exception $e) {
+            $old['error'] = $e->getMessage();
+        }
+
+        $response_data = $row->response_data;
+
+        if (!is_object($response_data))
+            $response_data = (object) $response_data;
+
+        $response_data->crm_old = $old;
+
+        $row->response_data = $response_data;
+        $row->save();
+
+        return null;
     }
 
     /**
@@ -122,12 +148,10 @@ class RT extends Controller
      */
     public static function retry(IncomingCallRequest $row)
     {
-
         if ($row->request_count < self::$retry)
             IncomingRTJob::dispatch($row)->delay(now()->addMinutes(self::$delay));
 
         return null;
-
     }
 
     /**
@@ -157,12 +181,12 @@ class RT extends Controller
      * @param Illuminate\Http\Request $request
      * @return bool
      */
-    public function checkSing($request) {
-
+    public function checkSing($request)
+    {
         return true;
 
         $id = $request->header('x-client-id');
-        $sing = $request->header('x-client-sign');  
+        $sing = $request->header('x-client-sign');
         $key = env('RT_KEY_SING');
 
         $body = json_encode($request->all());
@@ -198,7 +222,5 @@ class RT extends Controller
             return false;
 
         return true;
-
     }
-
 }
