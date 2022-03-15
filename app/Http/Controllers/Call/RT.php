@@ -114,7 +114,6 @@ class RT extends Controller
     public static function newCallForOld(IncomingCallRequest $row)
     {
         $url = env('CRM_OLD_API_SERVER', 'http://localhost:8000');
-        $old = [];
 
         try {
             $response = Http::withHeaders(['Accept' => 'application/json'])
@@ -129,14 +128,12 @@ class RT extends Controller
             $old['error'] = $e->getMessage();
         }
 
-        dump($old);
-
         $response_data = $row->response_data;
 
         if (!is_object($response_data))
             $response_data = (object) $response_data;
 
-        $response_data->crm_old = $old;
+        $response_data->crm_old = $old ?? [];
 
         $row->response_data = $response_data;
         $row->save();

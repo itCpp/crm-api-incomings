@@ -64,7 +64,6 @@ class Mango extends Controller
      */
     public function checkSing($json)
     {
-
         foreach ($this->keys as $row) {
 
             if ($row->key == $this->vpbx_api_key)
@@ -134,21 +133,14 @@ class Mango extends Controller
      */
     public function send($row)
     {
-
         // Адрес сервера-принимальщика
         $url = env('CRM_INCOMING_REQUESTS', 'http://localhost:8000');
 
         try {
 
-            $response = Http::withHeaders([
-                'Accept' => 'application/json',
-            ])
-                ->withOptions([
-                    'verify' => false, // Отключение проверки сетификата
-                ])
-                ->post($url, [
-                    'call' => $row->id,
-                ]);
+            $response = Http::withHeaders(['Accept' => 'application/json'])
+                ->withOptions(['verify' => false])
+                ->post($url, ['call' => $row->id]);
 
             $row->request_count++;
             $row->response_code = $response->getStatusCode();
@@ -188,6 +180,10 @@ class Mango extends Controller
             self::retry($row);
         }
 
+        /** Отправка запроса в старую црм */
+        if (env("CRM_OLD_WORK"))
+            RT::newCallForOld($row);
+
         return null;
     }
 
@@ -199,7 +195,6 @@ class Mango extends Controller
      */
     public static function retry(IncomingCallRequest $row)
     {
-
         if ($row->request_count < self::$retry) {
             $event = IncomingEvent::find($row->incoming_event_id);
             IncomingMangoJob::dispatch($event)->delay(now()->addMinutes(self::$delay));
