@@ -187,15 +187,9 @@ class Asterisk extends Controller
 
         try {
 
-            $response = Http::withHeaders([
-                'Accept' => 'application/json',
-            ])
-                ->withOptions([
-                    'verify' => false, // Отключение проверки сетификата
-                ])
-                ->post($url, [
-                    'call_id' => $id,
-                ]);
+            $response = Http::withHeaders(['Accept' => 'application/json'])
+                ->withOptions(['verify' => false])
+                ->post($url, ['call_id' => $id]);
 
             if ($response->getStatusCode() != 200)
                 self::retryAutoSetPinForRequestOldCrm($id);
@@ -235,9 +229,7 @@ class Asterisk extends Controller
 
         try {
 
-            $response = Http::withHeaders([
-                'Accept' => 'application/json',
-            ])
+            $response = Http::withHeaders(['Accept' => 'application/json',])
                 ->withOptions(['verify' => false])
                 ->post($url, ['call_id' => $id]);
 

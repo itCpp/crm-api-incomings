@@ -119,13 +119,17 @@ class RT extends Controller
         try {
             $response = Http::withHeaders(['Accept' => 'application/json'])
                 ->withOptions(['verify' => false])
-                ->post($url . "/api/eventHandling/callFromIncominget", ['call' => $row->id]);
+                ->post($url . "/api/eventHandling/callFromIncominget", [
+                    'call' => $row->incoming_event_id
+                ]);
 
             $old['response_code'] = $response->getStatusCode();
             $old['response'] = $response->json();
         } catch (Exception $e) {
             $old['error'] = $e->getMessage();
         }
+
+        dump($old);
 
         $response_data = $row->response_data;
 
