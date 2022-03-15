@@ -10,6 +10,7 @@ use App\Models\SipExternalExtension;
 use App\Models\SipInternalExtension;
 use App\Models\Old\CallDetailRecords;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
@@ -193,16 +194,24 @@ class Asterisk extends Controller
                 ->withOptions(['verify' => false])
                 ->post($url, ['call_id' => $id]);
 
+            Log::channel('setpin')->debug("success", [
+                'status_code' => $response->getStatusCode(),
+            ]);
+
             if ($response->getStatusCode() != 200)
                 self::retryAutoSetPinForRequestOldCrm($id);
         }
         // Исключение при отсутсвии подключения к серверу
-        catch (\Illuminate\Http\Client\ConnectionException) {
+        catch (\Illuminate\Http\Client\ConnectionException $e) {
             self::retryAutoSetPinForRequestOldCrm($id);
+            Log::channel('setpin')->debug("Error: " . $e->getMessage());
         }
         // Исключение при ошибочном ответе
-        catch (\Illuminate\Http\Client\RequestException) {
+        catch (\Illuminate\Http\Client\RequestException $e) {
             self::retryAutoSetPinForRequestOldCrm($id);
+            Log::channel('setpin')->debug("Error: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::channel('setpin')->debug("Error: " . $e->getMessage());
         }
 
         return null;
@@ -227,7 +236,7 @@ class Asterisk extends Controller
      */
     public static function autoSetPinForRequestNewCrm($id)
     {
-        Log::channel('setpin')->debug("Auto set pin for request old crm " . $id);
+        Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
         $url = env('CRM_INCOMING_REQUESTS', 'http://localhost:8000/api') . "/call_asterisk";
 
         try {
@@ -236,16 +245,24 @@ class Asterisk extends Controller
                 ->withOptions(['verify' => false])
                 ->post($url, ['call_id' => $id]);
 
+            Log::channel('setpin')->debug("success", [
+                'status_code' => $response->getStatusCode(),
+            ]);
+
             // if ($response->getStatusCode() != 200)
             //     self::retryAutoSetPinForRequestOldCrm($id);
         }
         // Исключение при отсутсвии подключения к серверу
-        catch (\Illuminate\Http\Client\ConnectionException) {
+        catch (\Illuminate\Http\Client\ConnectionException $e) {
             // self::retryAutoSetPinForRequestOldCrm($id);
+            Log::channel('setpin')->debug("Error: " . $e->getMessage());
         }
         // Исключение при ошибочном ответе
-        catch (\Illuminate\Http\Client\RequestException) {
+        catch (\Illuminate\Http\Client\RequestException $e) {
             // self::retryAutoSetPinForRequestOldCrm($id);
+            Log::channel('setpin')->debug("Error: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::channel('setpin')->debug("Error: " . $e->getMessage());
         }
 
         return null;
