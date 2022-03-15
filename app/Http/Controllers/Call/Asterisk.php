@@ -195,6 +195,7 @@ class Asterisk extends Controller
                 ->post($url, ['call_id' => $id]);
 
             Log::channel('setpin')->debug("success", [
+                'url' => $url,
                 'status_code' => $response->getStatusCode(),
             ]);
 
@@ -246,6 +247,7 @@ class Asterisk extends Controller
                 ->post($url, ['call_id' => $id]);
 
             Log::channel('setpin')->debug("success", [
+                'url' => $url,
                 'status_code' => $response->getStatusCode(),
             ]);
 
