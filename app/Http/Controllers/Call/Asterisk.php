@@ -185,7 +185,6 @@ class Asterisk extends Controller
      */
     public static function autoSetPinForRequestOldCrm($id)
     {
-        Log::channel('setpin')->debug("Auto set pin for request old crm " . $id);
         $url = env('CRM_INCOMING_CALL', 'http://localhost:8000');
 
         try {
@@ -194,6 +193,7 @@ class Asterisk extends Controller
                 ->withOptions(['verify' => false])
                 ->post($url, ['call_id' => $id]);
 
+            Log::channel('setpin')->debug("Auto set pin for request old crm " . $id);
             Log::channel('setpin')->debug("success", [
                 'url' => $url,
                 'status_code' => $response->getStatusCode(),
@@ -205,13 +205,16 @@ class Asterisk extends Controller
         // Исключение при отсутсвии подключения к серверу
         catch (\Illuminate\Http\Client\ConnectionException $e) {
             self::retryAutoSetPinForRequestOldCrm($id);
+            Log::channel('setpin')->debug("Auto set pin for request old crm " . $id);
             Log::channel('setpin')->debug("Error: " . $e->getMessage());
         }
         // Исключение при ошибочном ответе
         catch (\Illuminate\Http\Client\RequestException $e) {
             self::retryAutoSetPinForRequestOldCrm($id);
+            Log::channel('setpin')->debug("Auto set pin for request old crm " . $id);
             Log::channel('setpin')->debug("Error: " . $e->getMessage());
         } catch (Exception $e) {
+            Log::channel('setpin')->debug("Auto set pin for request old crm " . $id);
             Log::channel('setpin')->debug("Error: " . $e->getMessage());
         }
 
@@ -237,7 +240,6 @@ class Asterisk extends Controller
      */
     public static function autoSetPinForRequestNewCrm($id)
     {
-        Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
         $url = env('CRM_INCOMING_REQUESTS', 'http://localhost:8000/api') . "/call_asterisk";
 
         try {
@@ -246,6 +248,7 @@ class Asterisk extends Controller
                 ->withOptions(['verify' => false])
                 ->post($url, ['call_id' => $id]);
 
+            Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
             Log::channel('setpin')->debug("success", [
                 'url' => $url,
                 'status_code' => $response->getStatusCode(),
@@ -257,13 +260,16 @@ class Asterisk extends Controller
         // Исключение при отсутсвии подключения к серверу
         catch (\Illuminate\Http\Client\ConnectionException $e) {
             // self::retryAutoSetPinForRequestOldCrm($id);
+            Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
             Log::channel('setpin')->debug("Error: " . $e->getMessage());
         }
         // Исключение при ошибочном ответе
         catch (\Illuminate\Http\Client\RequestException $e) {
             // self::retryAutoSetPinForRequestOldCrm($id);
+            Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
             Log::channel('setpin')->debug("Error: " . $e->getMessage());
         } catch (Exception $e) {
+            Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
             Log::channel('setpin')->debug("Error: " . $e->getMessage());
         }
 
