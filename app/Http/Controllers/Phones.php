@@ -42,6 +42,9 @@ class Phones extends Controller
         if (!$row = SourceExtensionsName::where('extension', $extension)->first())
             return "";
 
+        $row->views++;
+        $row->save();
+
         return (bool) $row->abbr_name ? $row->abbr_name . " " : "";
     }
 }
