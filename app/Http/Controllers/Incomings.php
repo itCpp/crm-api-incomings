@@ -86,10 +86,12 @@ class Incomings extends Controller
     public static function incomingCallEventMango(Request $request, $type)
     {
         $data = $request->all();
+
+        $data['request'] = $data;
         $data['type'] = $type;
 
-        if (is_string($data['request']['json'] ?? null))
-            $data['data'] = json_decode($data['request']['json'], true);
+        if (is_string($data['json'] ?? null))
+            $data['data'] = json_decode($data['json'], true);
 
         $data['phone'] = $data['data']['from']['number'] ?? null; // Номер звонящего
         $data['sip'] = $data['data']['to']['number'] ?? "0000"; // Номер звонящему
