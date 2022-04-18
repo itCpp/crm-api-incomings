@@ -22,14 +22,23 @@ class IncomingMangoJob implements ShouldQueue
     public $row;
 
     /**
+     * Идентификатор для отправки в старую ЦРМ
+     * 
+     * @var bool
+     */
+    public $to_old = false;
+
+    /**
      * Create a new job instance.
      *
-     * @param \App\Models\IncomingEvent
+     * @param  \App\Models\IncomingEvent
+     * @param  bool $to_old
      * @return void
      */
-    public function __construct($row)
+    public function __construct($row, $to_old = false)
     {
         $this->row = $row;
+        $this->to_old = $to_old;
     }
 
     /**
@@ -39,7 +48,7 @@ class IncomingMangoJob implements ShouldQueue
      */
     public function handle()
     {
-        $mango = new Mango;
+        $mango = new Mango($this->to_old);
         $mango->event($this->row);
     }
 }

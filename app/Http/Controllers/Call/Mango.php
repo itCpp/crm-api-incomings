@@ -47,13 +47,22 @@ class Mango extends Controller
     public static $delay = 2;
 
     /**
+     * Флаг отправки запроса в старую ЦРМ
+     * 
+     * @var bool
+     */
+    public $to_old = false;
+
+    /**
      * Создание объекта
      * 
+     * @param  bool $to_old В старуб ЦРМ
      * @return void
      */
-    public function __construct()
+    public function __construct($to_old = false)
     {
         $this->keys = json_decode(env('APP_MANGOKEYS_BALANCE', "[]"));
+        $this->to_old = $to_old;
     }
 
     /**
@@ -133,6 +142,9 @@ class Mango extends Controller
      */
     public function send($row)
     {
+        if ($this->to_old)
+            return RT::newCallForOld($row);
+
         // Адрес сервера-принимальщика
         $url = env('CRM_INCOMING_REQUESTS', 'http://localhost:8000');
 
@@ -179,10 +191,6 @@ class Mango extends Controller
 
             self::retry($row);
         }
-
-        /** Отправка запроса в старую црм */
-        if (env("CRM_OLD_WORK"))
-            RT::newCallForOld($row);
 
         return null;
     }

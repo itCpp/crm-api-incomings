@@ -107,7 +107,12 @@ class Incomings extends Controller
             'request_data' => parent::encrypt($data),
         ]);
 
-        IncomingMangoJob::dispatch($event);
+        if (env("CRM_OLD_WORK")) {
+            IncomingMangoJob::dispatch($event, true);
+            IncomingMangoJob::dispatch($event)->delay(now()->addMinute());
+        } else {
+            IncomingMangoJob::dispatch($event);
+        }
 
         return response()->json([
             'message' => "Запрос обработан",

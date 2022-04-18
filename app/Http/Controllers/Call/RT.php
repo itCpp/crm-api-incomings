@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Call;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\IncomingCallToOldCrmJob;
 use App\Jobs\IncomingRTJob;
 use App\Models\IncomingCallRequest;
 use App\Models\IncomingEvent;
@@ -38,7 +39,12 @@ class RT extends Controller
             'incoming_event_id' => $event->id,
         ]);
 
-        IncomingRTJob::dispatch($row);
+        if (env("CRM_OLD_WORK")) {
+            IncomingCallToOldCrmJob::dispatch($row);
+            IncomingRTJob::dispatch($row)->delay(now()->addMinute());
+        } else {
+            IncomingRTJob::dispatch($row);
+        }
 
         return $row;
     }
@@ -99,8 +105,8 @@ class RT extends Controller
         }
 
         /** Отправка запроса в старую црм */
-        if (env("CRM_OLD_WORK"))
-            self::newCallForOld($row);
+        // if (env("CRM_OLD_WORK"))
+        //     self::newCallForOld($row);
 
         return null;
     }
