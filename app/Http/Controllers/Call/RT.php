@@ -29,15 +29,33 @@ class RT extends Controller
     /**
      * Обработка входящего события
      * 
-     * @param \App\Models\IncomingEvent $event
-     * @return \App\Models\IncomingTextRequest|null
+     * @param  \App\Models\IncomingEvent $event
+     * @param  string|null $event_hash
+     * @return \App\Models\IncomingCallRequest|null
      */
-    public static function event(IncomingEvent $event)
+    public static function event(IncomingEvent $event, $event_hash = null)
     {
+        $existence = $event_hash
+            ? IncomingCallRequest::where('event_hash', $event_hash)->count()
+            : null;
+
         $row = IncomingCallRequest::create([
             'api_type' => $event->api_type,
             'incoming_event_id' => $event->id,
+            'event_hash' => $event_hash,
         ]);
+
+        if ($existence) {
+
+            $row->response_code = 400;
+            $row->response_data = (object) [
+                'message' => "Дублирующийся запрос",
+            ];
+
+            $row->save();
+
+            return $row;
+        }
 
         if (env("CRM_OLD_WORK")) {
             IncomingCallToOldCrmJob::dispatch($row);

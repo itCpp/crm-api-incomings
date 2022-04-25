@@ -17,6 +17,7 @@ class IncomingCallRequest extends Model
     protected $fillable = [
         'api_type',
         'incoming_event_id',
+        'event_hash',
         'request_count',
         'response_code',
         'response_data',
