@@ -68,8 +68,10 @@ class Incomings extends Controller
             'request_data' => parent::encrypt($data),
         ]);
 
-        if ($request->state == "new" and $request->type == "incoming")
-            RT::event($event);
+        if ($request->state == "new" and $request->type == "incoming") {
+            $hash = md5($event->api_type . $event->session_id . $data['phone'] . $data['sip']);
+            RT::event($event, $hash);
+        }
 
         return response()->json([
             'message' => "Запрос обработан",
