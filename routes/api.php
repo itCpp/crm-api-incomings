@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\WriteApiAccessQuery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -18,11 +19,11 @@ use Illuminate\Support\Facades\Route;
 Route::any('inText', 'Incomings@incomingTextRequest');
 
 /** Входящие события РТ */
-Route::any('rt', 'Incomings@incomingCallEventRT');
-Route::post('rt/call_events', 'Incomings@incomingCallEventRT');
+Route::any('rt', 'Incomings@incomingCallEventRT')->middleware(WriteApiAccessQuery::class);
+Route::post('rt/call_events', 'Incomings@incomingCallEventRT')->middleware(WriteApiAccessQuery::class);
 
 /** Входящие события Манго */
-Route::any('mango/events/{type}', 'Incomings@incomingCallEventMango');
+Route::any('mango/events/{type}', 'Incomings@incomingCallEventMango')->middleware(WriteApiAccessQuery::class);
 
 /** Входящее события с внутренней звонилки */
 Route::any('events', 'Incomings@events');
@@ -37,4 +38,4 @@ Route::any('getQueueSectorCall', 'Callcenter\SectorQueue@getSector');
 Route::get('getCallerExtension', 'Callcenter\Extensions@getCallerExtension');
 
 /** Прием входящих сообщений телеграма */
-Route::any('telegram{token}/incoming', 'Telegram\Incoming');
+Route::any('telegram{token}/incoming', 'Telegram\Incoming')->middleware(WriteApiAccessQuery::class);
