@@ -19,7 +19,7 @@ class WriteApiAccessQuery
     {
         $route = "/" . $request->route()->uri();
 
-        Log::channel('access')->debug("{$request->method()} $route", $request->all());
+        Log::channel('access')->debug("{$request->ip()} {$request->method()} $route", $request->all());
 
         return $next($request);
     }
