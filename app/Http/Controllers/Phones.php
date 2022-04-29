@@ -16,8 +16,14 @@ class Phones extends Controller
     public function hidePhone(Request $request)
     {
         /** Разрешенные типы модификации @var */
-        $types = [1, 2, 3, 4, 5, 6, 7, 8];
+        $types = [1, 2, 3, 4, 5, 6, 7, 8, 9];
         $type = (int) $request->type;
+
+        $extension = $request->extension ? $this->getSourceName($request->extension) : "";
+
+        /** Экстренное переключение на короткий вариант */
+        if ($type == 8 and (bool) $extension)
+            $type = 9;
 
         if (!in_array($type, $types))
             $request->type = 6;
@@ -26,7 +32,7 @@ class Phones extends Controller
             $phone = $request->phone ?? "0";
 
         if ($request->extension)
-            $phone = $this->getSourceName($request->extension) . $phone;
+            $phone .= $extension;
 
         return $phone;
     }
@@ -45,6 +51,6 @@ class Phones extends Controller
         $row->views++;
         $row->save();
 
-        return (bool) $row->abbr_name ? $row->abbr_name . " " : "";
+        return (bool) $row->abbr_name ? " " . $row->abbr_name : "";
     }
 }
