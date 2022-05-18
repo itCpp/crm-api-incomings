@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Call;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\IncomingMangoJob;
 use App\Models\IncomingCallRequest;
 use App\Models\IncomingEvent;
-use App\Jobs\IncomingMangoJob;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -44,7 +46,7 @@ class Mango extends Controller
      * 
      * @var int Минуты
      */
-    public static $delay = 2;
+    public static $delay = 1;
 
     /**
      * Флаг отправки запроса в старую ЦРМ
@@ -68,7 +70,7 @@ class Mango extends Controller
     /**
      * Метод проверки подписи для предотвращения атак
      * 
-     * @param string $json Входящие данные для сверки подписи
+     * @param  string $json Входящие данные для сверки подписи
      * @return bool
      */
     public function checkSing($json)
@@ -85,8 +87,8 @@ class Mango extends Controller
     /** 
      * Обработка входящего события от сервера Манго офиса
      * 
-     * @param \App\Models\IncomingEvent $event
-     * @return response
+     * @param  \App\Models\IncomingEvent $event
+     * @return null
      */
     public function event(IncomingEvent $event)
     {
@@ -126,7 +128,7 @@ class Mango extends Controller
     /**
      * Метод обработки события начала входящего звонка
      * 
-     * @param \App\Models\IncomingCallRequest $row
+     * @param  \App\Models\IncomingCallRequest $row
      * @return null
      */
     public function eventAppeared($row)
@@ -137,7 +139,7 @@ class Mango extends Controller
     /**
      * Отправка данных на сервер
      * 
-     * @param \App\Models\IncomingCallRequest $row
+     * @param  \App\Models\IncomingCallRequest $row
      * @return null
      */
     public function send($row)
@@ -145,7 +147,6 @@ class Mango extends Controller
         if ($this->to_old)
             return RT::newCallForOld($row);
 
-        // Адрес сервера-принимальщика
         $url = env('CRM_INCOMING_REQUESTS', 'http://localhost:8000');
 
         try {
@@ -165,7 +166,7 @@ class Mango extends Controller
                 self::retry($row);
         }
         // Исключение при отсутсвии подключения к серверу
-        catch (\Illuminate\Http\Client\ConnectionException $e) {
+        catch (ConnectionException $e) {
 
             $row->request_count++;
             $row->response_code = $e->getCode();
@@ -178,7 +179,7 @@ class Mango extends Controller
             self::retry($row);
         }
         // Исключение при ошибочном ответе
-        catch (\Illuminate\Http\Client\RequestException $e) {
+        catch (RequestException $e) {
 
             $row->request_count++;
             $row->response_code = $e->getCode();
@@ -198,7 +199,7 @@ class Mango extends Controller
     /**
      * Повторная попытка отправки запроса
      * 
-     * @param \App\Models\IncomingCallRequest $row
+     * @param  \App\Models\IncomingCallRequest $row
      * @return null
      */
     public static function retry(IncomingCallRequest $row)

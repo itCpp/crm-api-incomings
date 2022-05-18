@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 use App\Http\Controllers\Call\Asterisk;
 use App\Http\Controllers\Call\Mango;
 use App\Http\Controllers\Call\RT;
 use App\Http\Controllers\Text\IncomingText;
 use App\Jobs\IncomingMangoJob;
 use App\Jobs\UpdateDurationTime;
-use App\Models\IncomingEvent;
 use App\Models\Crm\CallDetailRecord as CrmCallDetailRecord;
+use App\Models\IncomingEvent;
 use App\Models\Old\CallDetailRecords;
 use Exception;
 use Facade\FlareClient\View;
 use FFMpeg\FFMpeg;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 class Incomings extends Controller
@@ -23,7 +22,7 @@ class Incomings extends Controller
     /**
      * Входящая текстовая заявка
      * 
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public static function incomingTextRequest(Request $request)
@@ -43,11 +42,11 @@ class Incomings extends Controller
     }
 
     /**
-     * Входящие звонки от рос-телекома
+     * Входящие звонки от Ростелекома
      * Параметр `from_number` имеет формат sip:79001234567@0.0.0.0
      * но возможно не всегда...
      * 
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public static function incomingCallEventRT(Request $request)
@@ -81,8 +80,8 @@ class Incomings extends Controller
     /**
      * Входящее событие Манго
      * 
-     * @param \Illuminate\Http\Request $request
-     * @param string $type Тип события
+     * @param  \Illuminate\Http\Request $request
+     * @param  string $type Тип события
      * @return \Illuminate\Http\JsonResponse
      */
     public static function incomingCallEventMango(Request $request, $type)
@@ -124,7 +123,7 @@ class Incomings extends Controller
     /**
      * Запись любого события
      * 
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public static function events(Request $request)
@@ -147,8 +146,8 @@ class Incomings extends Controller
     /**
      * Обработка событий внутреннего Asterisk
      * 
-     * @param \Illuminate\Http\Request $request
-     * @param array $params
+     * @param  \Illuminate\Http\Request $request
+     * @param  array $params
      * @return \Illuminate\Http\JsonResponse
      */
     public static function asterisk(Request $request, ...$params)
@@ -159,7 +158,7 @@ class Incomings extends Controller
     /**
      * Обновление информации и длине аудиофала
      * 
-     * @param \App\Models\Old\CallDetailRecords $file
+     * @param  \App\Models\Old\CallDetailRecords $file
      * @return \App\Models\Old\CallDetailRecords
      */
     public static function updateDurationTime(CallDetailRecords $file, $host = null)
@@ -192,9 +191,9 @@ class Incomings extends Controller
     /**
      * Просмотр входящих событий
      * 
-     * @param \Illuminate\Http\Request $request
-     * @param int $id
-     * @return view
+     * @param  \Illuminate\Http\Request $request
+     * @param  int $id
+     * @return \Illuminate\Contracts\View\View
      */
     public static function eventView(Request $request, int $id)
     {
@@ -213,9 +212,9 @@ class Incomings extends Controller
     }
 
     /**
-     * Проверка IP для вывод расшифровывания события
+     * Проверка IP для вывода расшифровки события
      * 
-     * @param string $ip
+     * @param  string $ip
      * @return bool
      */
     public static function checkIpForDecrypt(string $ip): bool
@@ -225,6 +224,7 @@ class Incomings extends Controller
 
         $parts = [
             '192.168.0.',
+            '192.168.40.',
             '172.16.255.',
         ];
 

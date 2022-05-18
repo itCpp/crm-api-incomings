@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Call;
 
+use App\Http\Controllers\Controller;
 use App\Jobs\AsteriskIncomingCallStartJob;
 use App\Jobs\UpdateDurationTime;
 use App\Models\IncomingEvent;
@@ -9,8 +10,9 @@ use App\Models\SipTimeEvent;
 use App\Models\SipExternalExtension;
 use App\Models\SipInternalExtension;
 use App\Models\Old\CallDetailRecords;
-use App\Http\Controllers\Controller;
 use Exception;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
@@ -21,9 +23,9 @@ class Asterisk extends Controller
     /**
      * Обработка событий внутреннего Asterisk
      * 
-     * @param \Illuminate\Http\Request $request
-     * @param array $params Параметры ссылки запроса
-     * @return \Illuminate\Http\Response
+     * @param  \Illuminate\Http\Request $request
+     * @param  array $params Параметры ссылки запроса
+     * @return \Illuminate\Http\JsonResponse
      */
     public static function asterisk(Request $request, ...$params)
     {
@@ -44,7 +46,8 @@ class Asterisk extends Controller
 
         // Начало звонка
         if ($type == "Start") {
-            self::writeSipRimeEvent($request->Call, $request->extension);
+
+            self::writeSipTimeEvent($request->Call, $request->extension);
 
             if ($direction == "in")
                 AsteriskIncomingCallStartJob::dispatch($event->id);
@@ -52,7 +55,7 @@ class Asterisk extends Controller
 
         // Ответ при переадресации
         if ($type == "Answer" and $request->line) {
-            self::writeSipRimeEvent("Start", $request->line);
+            self::writeSipTimeEvent("Start", $request->line);
         }
 
         // Конец звонка
@@ -83,10 +86,10 @@ class Asterisk extends Controller
             }
 
             if ($request->line) {
-                self::writeSipRimeEvent($request->Call, $request->line);
+                self::writeSipTimeEvent($request->Call, $request->line);
             }
 
-            self::writeSipRimeEvent($request->Call, $request->extension);
+            self::writeSipTimeEvent($request->Call, $request->extension);
         }
 
         return response()->json([
@@ -94,22 +97,20 @@ class Asterisk extends Controller
             'event_id' => $event->id,
             'file_id' => $file->id ?? null,
             'ip' => $event->ip,
-            // 'data' => $data,
-            // 'params' => $params,
         ]);
     }
 
     /**
      * Запись временного события
      * 
-     * @param string $status
-     * @param string $extension
-     * @param string $channel
-     * @return SipTimeEvent
+     * @param  string $status
+     * @param  string $extension
+     * @param  string $channel
+     * @return \App\Models\SipTimeEvent
      */
-    public static function writeSipRimeEvent($status, $extension)
+    public static function writeSipTimeEvent($status, $extension)
     {
-        SipTimeEvent::create([
+        return SipTimeEvent::create([
             'event_status' => $status,
             'extension' => $extension,
             'event_at' => now(),
@@ -119,8 +120,8 @@ class Asterisk extends Controller
     /**
      * Формирование уникального id
      * 
-     * @param string $id
-     * @param string|null $extension
+     * @param  string $id
+     * @param  string|null $extension
      * @return string
      */
     public static function createCallId($id, $extension = null)
@@ -141,18 +142,13 @@ class Asterisk extends Controller
         $uuid .= "-" . substr($hash, 19, 12);
 
         return $uuid;
-
-        // $call_id = substr(md5($extension), 0, 7);
-        // $call_id .= "-" . substr(md5($id), 0, 20);
-
-        // return $call_id;
     }
 
     /**
      * Метод преобразует строку информации о канале в sip extension
      *          Пример `SIP/sar13-0000a907` в `sar13`
      * 
-     * @param string
+     * @param  string $channel
      * @return string
      */
     public static function parseChannel($channel)
@@ -166,21 +162,88 @@ class Asterisk extends Controller
     /**
      * Приём входящего вызова для автоматического назначения оператора на заявку
      * 
-     * @param int $id
+     * @param  int $id
      * @return null
      */
     public static function autoSetPinForRequest($id)
     {
-        self::autoSetPinForRequestOldCrm($id);
+        if (env('CRM_OLD_WORK'))
+            self::autoSetPinForRequestOldCrm($id);
+
         self::autoSetPinForRequestNewCrm($id);
 
         return null;
     }
 
     /**
+     * Отправка события в новую црм
+     * 
+     * @param  int $id Идентификатор события
+     * @return null
+     */
+    public static function autoSetPinForRequestNewCrm($id)
+    {
+        $url = env('CRM_INCOMING_REQUESTS', 'http://localhost:8000/api') . "/call_asterisk";
+
+        try {
+
+            $response = Http::withHeaders(['Accept' => 'application/json',])
+                ->withOptions(['verify' => false])
+                ->post($url, ['call_id' => $id]);
+
+            Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
+            Log::channel('setpin')->debug("success", [
+                'url' => $url,
+                'status_code' => $response->getStatusCode(),
+            ]);
+
+            if ($response->getStatusCode() != 200)
+                self::retryAutoSetPinForRequestNewCrm($id);
+        }
+        // Исключение при отсутсвии подключения к серверу
+        catch (ConnectionException $e) {
+
+            self::retryAutoSetPinForRequestNewCrm($id);
+
+            Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
+            Log::channel('setpin')->error("\Illuminate\Http\Client\ConnectionException");
+            Log::channel('setpin')->error("Error: " . $e->getMessage());
+        }
+        // Исключение при ошибочном ответе
+        catch (RequestException $e) {
+
+            self::retryAutoSetPinForRequestNewCrm($id);
+
+            Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
+            Log::channel('setpin')->error("\Illuminate\Http\Client\RequestException");
+            Log::channel('setpin')->error("Error: " . $e->getMessage());
+        } catch (Exception $e) {
+
+            self::retryAutoSetPinForRequestNewCrm($id);
+
+            Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
+            Log::channel('setpin')->error("\Exception");
+            Log::channel('setpin')->error("Error: " . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Повторение запроса для новой ЦРМ
+     * 
+     * @param  int $id
+     * @return null
+     */
+    public static function retryAutoSetPinForRequestNewCrm($id)
+    {
+        return null;
+    }
+
+    /**
      * Назначение оператора на заявку в старой CRM
      *
-     * @param int $id
+     * @param  int $id
      * @return null
      */
     public static function autoSetPinForRequestOldCrm($id)
@@ -203,19 +266,29 @@ class Asterisk extends Controller
                 self::retryAutoSetPinForRequestOldCrm($id);
         }
         // Исключение при отсутсвии подключения к серверу
-        catch (\Illuminate\Http\Client\ConnectionException $e) {
+        catch (ConnectionException $e) {
+
             self::retryAutoSetPinForRequestOldCrm($id);
+
             Log::channel('setpin')->debug("Auto set pin for request old crm " . $id);
-            Log::channel('setpin')->debug("Error: " . $e->getMessage());
+            Log::channel('setpin')->error("\Illuminate\Http\Client\ConnectionException");
+            Log::channel('setpin')->error("Error: " . $e->getMessage());
         }
         // Исключение при ошибочном ответе
-        catch (\Illuminate\Http\Client\RequestException $e) {
+        catch (RequestException $e) {
+
             self::retryAutoSetPinForRequestOldCrm($id);
+
             Log::channel('setpin')->debug("Auto set pin for request old crm " . $id);
-            Log::channel('setpin')->debug("Error: " . $e->getMessage());
+            Log::channel('setpin')->error("\Illuminate\Http\Client\RequestException");
+            Log::channel('setpin')->error("Error: " . $e->getMessage());
         } catch (Exception $e) {
+
+            self::retryAutoSetPinForRequestOldCrm($id);
+
             Log::channel('setpin')->debug("Auto set pin for request old crm " . $id);
-            Log::channel('setpin')->debug("Error: " . $e->getMessage());
+            Log::channel('setpin')->error("\Exception");
+            Log::channel('setpin')->error("Error: " . $e->getMessage());
         }
 
         return null;
@@ -223,56 +296,13 @@ class Asterisk extends Controller
 
     /**
      * Повторная отправка события
+     * Не так важно, все равно это никогда не работало ))
      * 
-     * @param int $id
+     * @param  int $id
      * @return null
      */
     public static function retryAutoSetPinForRequestOldCrm($id)
     {
-        return null;
-    }
-
-    /**
-     * Отправка события в новую црм
-     * 
-     * @param int $id Идентификатор события
-     * @return null
-     */
-    public static function autoSetPinForRequestNewCrm($id)
-    {
-        $url = env('CRM_INCOMING_REQUESTS', 'http://localhost:8000/api') . "/call_asterisk";
-
-        try {
-
-            $response = Http::withHeaders(['Accept' => 'application/json',])
-                ->withOptions(['verify' => false])
-                ->post($url, ['call_id' => $id]);
-
-            Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
-            Log::channel('setpin')->debug("success", [
-                'url' => $url,
-                'status_code' => $response->getStatusCode(),
-            ]);
-
-            // if ($response->getStatusCode() != 200)
-            //     self::retryAutoSetPinForRequestOldCrm($id);
-        }
-        // Исключение при отсутсвии подключения к серверу
-        catch (\Illuminate\Http\Client\ConnectionException $e) {
-            // self::retryAutoSetPinForRequestOldCrm($id);
-            Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
-            Log::channel('setpin')->debug("Error: " . $e->getMessage());
-        }
-        // Исключение при ошибочном ответе
-        catch (\Illuminate\Http\Client\RequestException $e) {
-            // self::retryAutoSetPinForRequestOldCrm($id);
-            Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
-            Log::channel('setpin')->debug("Error: " . $e->getMessage());
-        } catch (Exception $e) {
-            Log::channel('setpin')->debug("Auto set pin for request new crm " . $id);
-            Log::channel('setpin')->debug("Error: " . $e->getMessage());
-        }
-
         return null;
     }
 }

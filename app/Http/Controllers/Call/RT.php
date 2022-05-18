@@ -8,6 +8,8 @@ use App\Jobs\IncomingRTJob;
 use App\Models\IncomingCallRequest;
 use App\Models\IncomingEvent;
 use Exception;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 
 class RT extends Controller
@@ -30,7 +32,7 @@ class RT extends Controller
      * Обработка входящего события
      * 
      * @param  \App\Models\IncomingEvent $event
-     * @param  string|null $event_hash
+     * @param  string|null $event_hash Хэш заонка для исключения дублирования
      * @return \App\Models\IncomingCallRequest|null
      */
     public static function event(IncomingEvent $event, $event_hash = null)
@@ -70,12 +72,11 @@ class RT extends Controller
     /**
      * Отправка события о входящем звонке
      * 
-     * @param \App\Models\IncomingCallRequest $row
+     * @param  \App\Models\IncomingCallRequest $row
      * @return null
      */
     public static function newCall(IncomingCallRequest $row)
     {
-        /** Адрес сервера-принимальщика */
         $url = env('CRM_INCOMING_REQUESTS', 'http://localhost:8000');
 
         try {
@@ -95,7 +96,7 @@ class RT extends Controller
                 self::retry($row);
         }
         /** Исключение при отсутсвии подключения к серверу */
-        catch (\Illuminate\Http\Client\ConnectionException $e) {
+        catch (ConnectionException $e) {
 
             $row->request_count++;
             $row->response_code = $e->getCode();
@@ -108,7 +109,7 @@ class RT extends Controller
             self::retry($row);
         }
         /** Исключение при ошибочном ответе */
-        catch (\Illuminate\Http\Client\RequestException $e) {
+        catch (RequestException $e) {
 
             $row->request_count++;
             $row->response_code = $e->getCode();
@@ -122,17 +123,13 @@ class RT extends Controller
             self::retry($row);
         }
 
-        /** Отправка запроса в старую црм */
-        // if (env("CRM_OLD_WORK"))
-        //     self::newCallForOld($row);
-
         return null;
     }
 
     /**
      * Отправка запроса в старую ЦРМ
      * 
-     * @param \App\Models\IncomingCallRequest $row
+     * @param  \App\Models\IncomingCallRequest $row
      * @return null
      */
     public static function newCallForOld(IncomingCallRequest $row)
@@ -168,7 +165,7 @@ class RT extends Controller
     /**
      * Повторная попытка отправки запроса
      * 
-     * @param \App\Models\IncomingCallRequest $row
+     * @param  \App\Models\IncomingCallRequest $row
      * @return null
      */
     public static function retry(IncomingCallRequest $row)
@@ -203,7 +200,7 @@ class RT extends Controller
      * Результат вычисления:
      * "fc95a524342dc68df90f7488e6d821c5a8a3b667d585490b50ebf939f1202c36".
      * 
-     * @param Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request $request
      * @return bool
      */
     public function checkSing($request)
