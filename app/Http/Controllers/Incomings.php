@@ -16,6 +16,7 @@ use Facade\FlareClient\View;
 use FFMpeg\FFMpeg;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class Incomings extends Controller
 {
@@ -167,11 +168,13 @@ class Incomings extends Controller
             return $file;
 
         $path = $host . $file->path;
+        $duration = 0;
 
-        $ffmpeg = FFMpeg::create();
-        $audio = $ffmpeg->open($path);
-
-        $duration = (int) $audio->getFormat()->get('duration');
+        try {
+            $duration = self::getDurationFile($path);
+        } catch (Exception $e) {
+            Log::warning("Время длины аудиозаписи разговора не обноылено: " . $e->getMessage(), ['id' => $file->id]);
+        }
 
         $file->duration = $duration ? round($duration, 0) : null;
         $file->save();
@@ -183,9 +186,26 @@ class Incomings extends Controller
                 ->withOptions(['verify' => false])
                 ->post($url . "/api/events/callDetailRecord", $file->toArray());
         } catch (Exception $e) {
+            // ...
         }
 
         return $file;
+    }
+
+    /**
+     * Подключение и проверка файла
+     * 
+     * @param  string $path Адрес до файла
+     * @return int
+     * 
+     * @throws \Exception
+     */
+    public static function getDurationFile($path)
+    {
+        $ffmpeg = FFMpeg::create();
+        $audio = $ffmpeg->open($path);
+
+        return (int) $audio->getFormat()->get('duration');
     }
 
     /**
