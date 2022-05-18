@@ -172,8 +172,9 @@ class Incomings extends Controller
 
         try {
             $duration = self::getDurationFile($path);
+            Log::channel('call_duration')->info("Длительность записи: [$duration]", ['id' => $file->id]);
         } catch (Exception $e) {
-            Log::warning("Время длины аудиозаписи разговора не обноылено: " . $e->getMessage(), ['id' => $file->id]);
+            Log::channel('call_duration')->error("Длительность не определена: " . $e->getMessage(), ['id' => $file->id]);
         }
 
         $file->duration = $duration ? round($duration, 0) : null;
@@ -186,7 +187,7 @@ class Incomings extends Controller
                 ->withOptions(['verify' => false])
                 ->post($url . "/api/events/callDetailRecord", $file->toArray());
         } catch (Exception $e) {
-            // ...
+            Log::channel('call_duration')->error("Информация о длительности не отправлена: " . $e->getMessage(), ['id' => $file->id]);
         }
 
         return $file;

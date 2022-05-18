@@ -68,6 +68,13 @@ return [
             'days' => 30,
         ],
 
+        'call_duration' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/calls/check-duration.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 30,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
