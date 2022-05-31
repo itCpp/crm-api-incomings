@@ -82,10 +82,11 @@ class Asterisk extends Controller
                     'duration' => $duration,
                 ]);
 
-                if (!$duration)
+                if (!$duration) {
                     UpdateDurationTime::dispatch($file);
-                else
-                    AsteriskRetryEventToCrmJob::dispatch($file);
+                } else {
+                    // AsteriskRetryEventToCrmJob::dispatch($file);
+                }
             }
 
             if ($request->line) {

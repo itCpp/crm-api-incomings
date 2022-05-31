@@ -191,7 +191,7 @@ class Incomings extends Controller
             Log::channel('call_duration')->error("Информация о длительности не отправлена: " . $e->getMessage(), ['id' => $file->id]);
         }
 
-        AsteriskRetryEventToCrmJob::dispatch($file);
+        // AsteriskRetryEventToCrmJob::dispatch($file);
 
         return $file;
     }
