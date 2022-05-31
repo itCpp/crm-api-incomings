@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Call;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\AsteriskIncomingCallStartJob;
+use App\Jobs\AsteriskRetryEventToCrmJob;
 use App\Jobs\UpdateDurationTime;
 use App\Models\IncomingEvent;
 use App\Models\SipTimeEvent;
@@ -83,6 +84,8 @@ class Asterisk extends Controller
 
                 if (!$duration)
                     UpdateDurationTime::dispatch($file);
+                else
+                    AsteriskRetryEventToCrmJob::dispatch($file);
             }
 
             if ($request->line) {

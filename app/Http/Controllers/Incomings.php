@@ -6,6 +6,7 @@ use App\Http\Controllers\Call\Asterisk;
 use App\Http\Controllers\Call\Mango;
 use App\Http\Controllers\Call\RT;
 use App\Http\Controllers\Text\IncomingText;
+use App\Jobs\AsteriskRetryEventToCrmJob;
 use App\Jobs\IncomingMangoJob;
 use App\Jobs\UpdateDurationTime;
 use App\Models\Crm\CallDetailRecord as CrmCallDetailRecord;
@@ -189,6 +190,8 @@ class Incomings extends Controller
         } catch (Exception $e) {
             Log::channel('call_duration')->error("Информация о длительности не отправлена: " . $e->getMessage(), ['id' => $file->id]);
         }
+
+        AsteriskRetryEventToCrmJob::dispatch($file);
 
         return $file;
     }
