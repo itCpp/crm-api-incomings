@@ -50,15 +50,22 @@ class AudioCheckRecordsCommand extends Command
             $query->where('path', 'LIKE', "%cr01%")
                 ->orWhere('path', 'LIKE', "%cr02%");
         })
-            ->lazy()
-            ->each(function ($row) {
+            ->chunk(50, function ($rows) {
 
-                $duration = $this->updateDurationAudioFile($row);
+                foreach ($rows as $row) {
 
-                $row->duration = $duration ? round($duration, 0) : null;
-                $row->save();
+                    // $command = "ssh root@192.168.0.11 find /var/www/html/vois/2022/04/28 -regex '.*cr0.*'";
+                    // exec($command, $output);
+                    // dd($output);
+                    // dd($row->toArray());
 
-                $this->count_file++;
+                    $duration = $this->updateDurationAudioFile($row);
+
+                    $row->duration = $duration ? round($duration, 0) : null;
+                    $row->save();
+
+                    $this->count_file++;
+                }
             });
 
         return 0;
