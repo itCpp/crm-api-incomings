@@ -77,13 +77,16 @@ class Asterisk extends Controller
                     'phone' => $phone,
                     'extension' => $data['extension'] ?? null,
                     'path' => $path,
-                    'call_at' => $time ? date("Y-m-d H:i:s", $time) : now(),
+                    'call_at' => $time ? date("Y-m-d H:i:s", $time) : now()->format("Y-m-d H:i:s"),
                     'type' => $direction,
                     'duration' => $duration,
                 ]);
 
-                if (!$duration) {
-                    UpdateDurationTime::dispatch($file);
+                /** Для отправки в новую ЦРМ необходимо перепроверить каждый файл */
+                UpdateDurationTime::dispatch($file);
+
+                if (!(int) $duration) {
+                    // UpdateDurationTime::dispatch($file);
                 } else {
                     // AsteriskRetryEventToCrmJob::dispatch($file);
                 }
