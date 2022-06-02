@@ -91,7 +91,9 @@ class AudioCheckRecordsCommand extends Command
             $duration = Incomings::getDurationFile($path);
             $duration_new = (int) $duration;
 
-            $this->line("Change duration <fg=green;options=bold>{$duration_old}</> >>> <fg=green;options=bold>{$duration_new}</>");
+            $color = ($duration_new == $duration_old) ? "white" : "green";
+
+            $this->line("Change duration <fg={$color};options=bold>{$duration_old}</> >>> <fg={$color};options=bold>{$duration_new}</>");
         } catch (Exception $e) {
             $this->error($e->getMessage());
         }
