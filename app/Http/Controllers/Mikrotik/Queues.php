@@ -24,15 +24,16 @@ class Queues extends Controller
      * @param  \Illuminate\Http\Request $request
      * @param  string $upload
      * @param  string $download
+     * @param  string $name
      * @return \Illuminate\Http\Response
      */
-    public function set(Request $request, $upload, $download)
+    public function set(Request $request, $upload, $download, $name)
     {
         $date = now()->format("Y-m-d");
         $month = now()->format("Y-m");
 
         $row = MikrotikQueue::firstOrNew(
-            ['name' => $request->name, 'date' => $date],
+            ['name' => $name, 'date' => $date],
             ['month' => $month]
         );
 
