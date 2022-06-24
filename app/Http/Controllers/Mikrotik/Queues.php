@@ -51,6 +51,7 @@ class Queues extends Controller
 
         return response()->json([
             'limit' => $limit,
+            'traff' => $bytes,
         ]);
     }
 
