@@ -39,7 +39,7 @@ class Queues extends Controller
         $row->uploads += $upload;
         $row->downloads += $download;
 
-        // $row->save();
+        $row->save();
 
         $bytes = $this->getTotal($row->name);
 
