@@ -39,3 +39,6 @@ Route::get('getCallerExtension', 'Callcenter\Extensions@getCallerExtension');
 
 /** Прием входящих сообщений телеграма */
 Route::any('telegram{token}/incoming', 'Telegram\Incoming')->middleware(WriteApiAccessQuery::class);
+
+/** Счетчик траффика */
+Route::get('mikrotik/queue/{upload}/{download}', 'Mikrotik\Queues@set');
