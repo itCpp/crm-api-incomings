@@ -13,10 +13,10 @@ class Queues extends Controller
     const LIMIT = 21474836480;
 
     /** Верхний предел ограничения скорости */
-    const LIMIT_UP = "100M/100M";
+    const LIMIT_UP = "100M";
 
     /** Верхний предел ограничения скорости */
-    const LIMIT_DOWN = "128K/128K";
+    const LIMIT_DOWN = "128K";
 
     /**
      * Прибавляет счетчик
@@ -24,7 +24,7 @@ class Queues extends Controller
      * @param  \Illuminate\Http\Request $request
      * @param  string $upload
      * @param  string $download
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\Response
      */
     public function set(Request $request, $upload, $download)
     {
@@ -49,10 +49,7 @@ class Queues extends Controller
             ? ($setting->limit_down ?? self::LIMIT_DOWN)
             : ($setting->limit_up ?? self::LIMIT_UP);
 
-        return response()->json([
-            'limit' => $limit,
-            'traff' => $bytes,
-        ]);
+        return response($limit)->header('Content-Type', 'text/plain');
     }
 
     /**
