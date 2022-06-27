@@ -153,4 +153,54 @@ class Controller extends BaseController
         // Возврат в формате 79001002030
         return $num;
     }
+
+    /**
+     * Преобразует байты в читаемый вид
+     * 
+     * @param  int $bytes
+     * @param  int $precision Количество числел после запятой
+     * @return string
+     */
+    public static function formatBytes($bytes, $precision = 2)
+    {
+        $si_prefix = ['b', 'Kb', 'Mb', 'Gb', 'Tb', 'Eb', 'Zb', 'Yb'];
+        $precision = (int) $precision >= 0 ? (int) $precision : 0;
+
+        $class = min((int) log($bytes, 1024), count($si_prefix) - 1);
+
+        return trim(
+            sprintf("%1.{$precision}f", $bytes / pow(1024, $class)) . ' ' . ($si_prefix[$class] ?? "")
+        );
+    }
+
+    /**
+     * Российский месяц
+     * 
+     * @param  int $month
+     * @return string
+     */
+    public static function getRusMonth($month)
+    {
+        /**
+         * Российский месяца
+         * 
+         * @var array
+         */
+        $rus_month = [
+            1 => "январь",
+            2 => "февраль",
+            3 => "март",
+            4 => "апрель",
+            5 => "май",
+            6 => "июнь",
+            7 => "июль",
+            8 => "август",
+            9 => "сетябрь",
+            10 => "октябрь",
+            11 => "ноябрь",
+            12 => "декабрь",
+        ];
+
+        return $rus_month[$month] ?? $month;
+    }
 }

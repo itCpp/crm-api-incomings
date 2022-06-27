@@ -15,7 +15,7 @@ class Queues extends Controller
     /** Верхний предел ограничения скорости */
     const LIMIT_UP = "100M";
 
-    /** Верхний предел ограничения скорости */
+    /** Нижний предел ограничения скорости */
     const LIMIT_DOWN = "128K";
 
     /**
@@ -42,15 +42,34 @@ class Queues extends Controller
 
         $row->save();
 
-        $bytes = $this->getTotal($row->name);
+        return response($this->getLimit($row->name))
+            ->header('Content-Type', 'text/plain');
+    }
 
-        $setting = MikrotikQueuesLimit::where('name', $row->name)->first();
+    /**
+     * Получить текущий лимит по имени
+     * 
+     * @param  string $name
+     * @return string
+     */
+    public function getLimit($name)
+    {
+        if ($name instanceof MikrotikQueuesLimit) {
+            $setting = $name;
+        } else {
+            $setting = MikrotikQueuesLimit::where('name', $name)->first();
+        }
 
-        $limit = ($bytes > ($setting->limit ?? self::LIMIT))
+        if ($setting) {
+            if ($setting->limit === 0)
+                return $setting->limit_up ?? self::LIMIT_UP;
+        }
+
+        $limit = ($this->getTotal($name) > ($setting->limit ?? self::LIMIT))
             ? ($setting->limit_down ?? self::LIMIT_DOWN)
             : ($setting->limit_up ?? self::LIMIT_UP);
 
-        return response($limit)->header('Content-Type', 'text/plain');
+        return $limit;
     }
 
     /**

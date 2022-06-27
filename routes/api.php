@@ -42,3 +42,6 @@ Route::any('telegram{token}/incoming', 'Telegram\Incoming')->middleware(WriteApi
 
 /** Счетчик траффика */
 Route::get('mikrotik/queue/{upload}/{download}/{name}', 'Mikrotik\Queues@set');
+
+/** Вывод данных для грфика расхода траффика */
+Route::get('mikrotik/graph/{name}', 'Mikrotik\Graph@index');
