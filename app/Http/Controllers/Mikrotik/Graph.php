@@ -19,7 +19,7 @@ class Graph extends Queues
     {
         $max = 0;
         $sum = 0;
-        $month = $request->month ? now()->create($request->month)->format("Y-m") : now()->format("Y-m");
+        $month = ($request->month ? now()->create($request->month) : now())->format("Y-m");
 
         $data = MikrotikQueue::selectRaw("SUM(downloads) as traf, date")
             ->where([
