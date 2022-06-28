@@ -38,9 +38,13 @@ class Graph extends Queues
 
         $traf = [];
 
-        $data->map(function ($row) use ($sum, &$traf) {
+        $data->map(function ($row) use ($max, &$traf) {
 
-            $row->percent = $sum > 0 ? ($row->traf * 100 / $sum) : 0;
+            $row->percent = $max > 0 ? round($row->traf * 100 / $max, 4) : 0;
+
+            if ($row->percent < 1.5)
+                $row->percent = 1.5;
+
             $traf[$row->date] = $row;
 
             return $row;
@@ -79,6 +83,18 @@ class Graph extends Queues
             'sum' => $sum,
             'good' => $good,
             'bad' => $bad ?? 0,
+            'links' => $this->getLinks($name),
         ]);
+    }
+
+    /**
+     * Выводит ссылки на архив расхода траффика
+     * 
+     * @param  string $name
+     * @return array
+     */
+    public function getLinks($name)
+    {
+        return [];
     }
 }
