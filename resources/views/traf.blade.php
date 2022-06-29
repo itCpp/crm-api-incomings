@@ -13,19 +13,28 @@
 
 <body>
 
-    <div class="mt-3 mb-5 text-center">
+    <div class="mt-3 mb-3 text-center">
         <h1>{{ $name }}</h1>
         <h5>{{ mb_convert_case($month, MB_CASE_TITLE, 'UTF-8') }} {{ now()->format('Y') }}</h5>
     </div>
+
+    @if ($next or $prev)
+
+        <div class="mb-3 d-flex align-items-center justify-content-center">
+            {!! $prev !!}
+            {!! $next !!}
+        </div>
+
+    @endif
 
     <div style="width: 100%; max-width: 1000px;" class="mx-auto pb-4 d-flex align-items-center">
 
         <div class="flex-grow-1 me-1">
             <div class="progress">
-                <div class="progress-bar bg-success" role="progressbar" style="width: {{ $good }}%" aria-valuenow="{{ $good }}"
-                    aria-valuemin="0" aria-valuemax="100"></div>
-                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ $bad }}%" aria-valuenow="{{ $bad }}"
-                    aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar bg-success" role="progressbar" style="width: {{ $good }}%"
+                    aria-valuenow="{{ $good }}" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ $bad }}%"
+                    aria-valuenow="{{ $bad }}" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
         </div>
 
@@ -58,6 +67,7 @@
             </div>
         @endforeach
     </div>
+
 </body>
 
 </html>

@@ -83,18 +83,58 @@ class Graph extends Queues
             'sum' => $sum,
             'good' => $good,
             'bad' => $bad ?? 0,
-            'links' => $this->getLinks($name),
+            'prev' => $this->getPrevLink($month),
+            'next' => $this->getNextLink($month),
         ]);
     }
 
     /**
-     * Выводит ссылки на архив расхода траффика
+     * Выводит ссылку на предыдущий месяц
      * 
-     * @param  string $name
-     * @return array
+     * @param  string $month
+     * @return null|string
      */
-    public function getLinks($name)
+    public function getPrevLink($month)
     {
-        return [];
+        $month = now()->create($month)->subMonth()->format("Y-m");
+
+        return $this->getLink(MikrotikQueue::where('month', $month)->first()->month ?? null);
+    }
+
+    /**
+     * Выводит ссылку на следующий месяц
+     * 
+     * @param  string $month
+     * @return null|string
+     */
+    public function getNextLink($month)
+    {
+        $month = now()->create($month)->addMonth()->format("Y-m");
+
+        return $this->getLink(MikrotikQueue::where('month', $month)->first()->month ?? null);
+    }
+
+    /**
+     * Формирует ссылку для просмотра архива траффика
+     * 
+     * @param  null|string $month
+     * @return null|string
+     */
+    public function getLink($month)
+    {
+        if (!$month)
+            return null;
+
+        $date = now()->create($month);
+
+        $name = mb_convert_case(
+            $this->getRusMonth((int) $date->copy()->format("n")),
+            MB_CASE_TITLE,
+            'UTF-8'
+        );
+
+        $name .= " " . $date->copy()->format("Y");
+
+        return "<a class=\"btn btn-primary btn-sm mx-2\" href=\"?month={$month}\" role=\"button\">{$name}</a>";
     }
 }

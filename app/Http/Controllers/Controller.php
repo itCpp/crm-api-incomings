@@ -163,7 +163,7 @@ class Controller extends BaseController
      */
     public static function formatBytes($bytes, $precision = 2)
     {
-        $si_prefix = ['b', 'Kb', 'Mb', 'Gb', 'Tb', 'Eb', 'Zb', 'Yb'];
+        $si_prefix = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ', 'ЕБ', 'ЗБ', 'УБ'];
         $precision = (int) $precision >= 0 ? (int) $precision : 0;
 
         $class = min((int) log($bytes, 1024), count($si_prefix) - 1);
