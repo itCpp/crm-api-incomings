@@ -70,10 +70,11 @@ class Bind
                     'code' => $this->attributes[0] ?? null,
                 ]);
 
-            if ($response->status() != 200)
-                $this->badSent("Сервер не смог обработать запрос");
+            $json = $response->json();
+
+            $this->sendAnswer($json['message'] ?? ($response->ok() ? "Запрос успешно обработан" : "Сервер не смог обработать запрос"));
         } catch (Exception $e) {
-            $this->badSent("Сервер обработки запроса не доступен");
+            $this->sendAnswer("Сервер обработки запроса не доступен");
         } finally {
             return null;
         }
@@ -85,7 +86,7 @@ class Bind
      * @param  string $message
      * @return null
      */
-    public function badSent($message)
+    public function sendAnswer($message)
     {
         (new Telegram(env('TELEGRAM_CRM_TOKEN', "TELEGRAM_CRM_TOKEN")))->sendMessage([
             'chat_id' => $this->chat_id,
