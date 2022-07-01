@@ -30,11 +30,14 @@ class Telegram
     /**
      * Создание экземпляра объекта
      * 
+     * @param  null|string $token
      * @return void
      */
-    public function __construct()
+    public function __construct($token = null)
     {
-        if (!$this->token = env('TELEGRAM_API_TOKEN', null))
+        $this->token = $token ?: env('TELEGRAM_API_TOKEN', null);
+
+        if (!$this->token)
             throw new TelegramBotException("Токен доступа API Telegram бота не определен в настройках", 1);
 
         $this->url .= "/bot{$this->token}";

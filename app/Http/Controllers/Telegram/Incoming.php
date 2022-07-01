@@ -80,6 +80,14 @@ class Incoming extends Controller
             $date = $data['channel_post']['date'] ?? null;
         }
 
+        // Поиск команд в тексте сообщения
+        if (is_array($data['message']['entities'] ?? null)) {
+            CallbackQueryJob::dispatch(
+                $data['message']['from']['id'] ?? 0,
+                $data['message']['text'] ?? ""
+            );
+        }
+
         $created_at = !isset($date)
             ? now() : Carbon::createFromTimestamp($date);
 

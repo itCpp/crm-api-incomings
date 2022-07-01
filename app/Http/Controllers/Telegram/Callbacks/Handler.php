@@ -10,6 +10,7 @@ class Handler
      * @var array
      */
     protected $commands = [
+        \App\Http\Controllers\Telegram\Commands\Bind::class,
         \App\Http\Controllers\Telegram\Commands\HrPaymentApprove::class,
         \App\Http\Controllers\Telegram\Commands\HrPaymentReject::class,
     ];
