@@ -50,9 +50,10 @@ class Queues extends Controller
      * Получить текущий лимит по имени
      * 
      * @param  string $name
+     * @param  null|string $month
      * @return string
      */
-    public function getLimit($name)
+    public function getLimit($name, $month = null)
     {
         if ($name instanceof MikrotikQueuesLimit) {
             $setting = $name;
@@ -65,7 +66,7 @@ class Queues extends Controller
                 return $setting->limit_up ?? self::LIMIT_UP;
         }
 
-        $limit = ($this->getTotal($setting->name) > ($setting->limit ?? self::LIMIT))
+        $limit = ($this->getTotal($setting->name, $month) > ($setting->limit ?? self::LIMIT))
             ? ($setting->limit_down ?? self::LIMIT_DOWN)
             : ($setting->limit_up ?? self::LIMIT_UP);
 
@@ -76,12 +77,14 @@ class Queues extends Controller
      * Получает общий объём траффика
      * 
      * @param  string $name
+     * @param  null|string $month
+     * @return int
      */
-    public function getTotal($name)
+    public function getTotal($name, $month = null)
     {
         return MikrotikQueue::where([
             ['name', $name],
-            ['month', now()->format("Y-m")],
+            ['month', $month ?: now()->format("Y-m")],
         ])->sum('downloads');
     }
 }

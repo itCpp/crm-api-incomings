@@ -77,7 +77,7 @@ class Graph extends Queues
             'queue' => $queue,
             'rows' => $rows ?? [],
             'name' => $queue->title ?? $name,
-            'limit' => $this->getLimit($queue),
+            'limit' => $this->getLimit($queue, $month),
             'month' => $this->getRusMonth((int) now()->create($month)->format("n")),
             'traffic' => $limit,
             'sum' => $sum,
