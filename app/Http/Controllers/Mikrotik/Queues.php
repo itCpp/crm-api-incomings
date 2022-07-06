@@ -65,7 +65,7 @@ class Queues extends Controller
                 return $setting->limit_up ?? self::LIMIT_UP;
         }
 
-        $limit = ($this->getTotal($name) > ($setting->limit ?? self::LIMIT))
+        $limit = ($this->getTotal($setting->name) > ($setting->limit ?? self::LIMIT))
             ? ($setting->limit_down ?? self::LIMIT_DOWN)
             : ($setting->limit_up ?? self::LIMIT_UP);
 

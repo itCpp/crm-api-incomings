@@ -46,7 +46,9 @@
             @endif
         </div>
 
-        <div class="ms-1"><b>{{ $limit }}</b></div>
+        <div class="ms-1" title="Текущая скорость" style="cursor: default;">
+            <span class="badge bg-{{ $bad > 0 ? 'danger' : 'success' }}">{{ $limit }}{{ ((int) $limit == $limit) ? " b" : "" }}</span>
+        </div>
 
     </div>
 

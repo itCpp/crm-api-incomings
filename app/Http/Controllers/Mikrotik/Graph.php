@@ -42,7 +42,7 @@ class Graph extends Queues
 
             $row->percent = $max > 0 ? round($row->traf * 100 / $max, 4) : 0;
 
-            if ($row->percent < 1.5)
+            if ($row->percent > 0 and $row->percent < 1.5)
                 $row->percent = 1.5;
 
             $traf[$row->date] = $row;
