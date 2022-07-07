@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::group(['prefix' => 'internet'], function () {
+
+    Route::get('/', 'Mikrotik\Cabinet@main');
+});
+
 Route::any('/', function () {
     return response()->json([
         'message' => "Welcome my little friend",

@@ -16,7 +16,7 @@ class Queues extends Controller
     const LIMIT_UP = "100M";
 
     /** Нижний предел ограничения скорости */
-    const LIMIT_DOWN = "128K";
+    const LIMIT_DOWN = "16";
 
     /**
      * Прибавляет счетчик
