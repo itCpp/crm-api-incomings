@@ -17,6 +17,8 @@ class Graph extends Queues
      */
     public function index(Request $request, $name)
     {
+        return redirect("/internet/{$name}");
+
         $max = 0;
         $sum = 0;
         $month = ($request->month ? now()->create($request->month) : now())->format("Y-m");
