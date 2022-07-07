@@ -16,7 +16,8 @@ class Cabinet extends Queues
      */
     public function main(Request $request)
     {
-        $name = $request->session()->get('name');
+        $name = $request->name;
+        // $request->session()->get('name');
 
         if (!$row = MikrotikQueuesLimit::whereName($name)->first())
             return abort(404);
@@ -67,8 +68,18 @@ class Cabinet extends Queues
             $day->addDay();
         }
 
+        $row->limit_add = $this->getAdditional($row->id, $start->format("Y-m-d"), $stop->format("Y-m-d"));
+
         $limit = $row->limit ?? self::LIMIT;
         $good = round($limit > 0 ? ($row->traffic * 100 / $limit) : 100, 2);
+
+        $limit += $row->limit_add;
+
+        if ($good > 100 and $row->limit_add > 0) {
+            $overspending = round($row->limit_add * 100 / $limit, 2);
+            $add = $overspending;
+            $good -= $add;
+        }
 
         if ($good > 100 and $limit > 0) {
             $overspending = 100 - round($limit * 100 / $row->traffic, 2);
@@ -85,6 +96,7 @@ class Cabinet extends Queues
             'stop' => $stop->format("d.m.Y"),
             'progress' => [
                 'good' => $good,
+                'add' => $add ?? 0,
                 'bad' => $bad ?? 0,
             ],
         ]);

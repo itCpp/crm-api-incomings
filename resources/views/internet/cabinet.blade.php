@@ -14,8 +14,9 @@
 
             <div class="progress">
 
-                <div class="progress-bar bg-success" role="progressbar" style="width: {{ $progress['good'] ?? 0 }}%" aria-valuenow="{{ $progress['good'] ?? 0 }}" aria-valuemin="0" aria-valuemax="100"></div>
-                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ $progress['bad'] ?? 0 }}%" aria-valuenow="{{ $progress['bad'] ?? 0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar bg-success" role="progressbar" style="width: {{ $progress['good'] ?? 0 }}%" aria-valuenow="{{ $progress['good'] ?? 0 }}" aria-valuemin="0" aria-valuemax="100" title="Выделенный лимит"></div>
+                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $progress['add'] ?? 0 }}%" aria-valuenow="{{ $progress['add'] ?? 0 }}" aria-valuemin="0" aria-valuemax="100" title="Добавленный трафик"></div>
+                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ $progress['bad'] ?? 0 }}%" aria-valuenow="{{ $progress['bad'] ?? 0 }}" aria-valuemin="0" aria-valuemax="100" title="Перерасход"></div>
 
             </div>
 
@@ -40,21 +41,20 @@
 
 <div class="mx-auto d-flex justify-content-center my-5 align-items-end" style="height: 300px; max-width: 1100px; border-bottom: 1px solid #eee;">
 
-    @foreach ($days as $row)
-    <div class="mx-1 bg-primary text-center position-relative d-flex align-items-start"
-        style="height: {{ $row['percent'] }}%; width: 30px; border-top-left-radius: 0.25rem; border-top-right-radius: 0.25rem;">
+    @foreach ($days as $day)
+    <div class="mx-1 bg-primary text-center position-relative d-flex align-items-start" style="height: {{ $day['percent'] }}%; width: 30px; border-top-left-radius: 0.25rem; border-top-right-radius: 0.25rem;">
 
-        @if ($row['traffic'] > 0)
-            <div style="position: absolute; font-size: 70%; transform: rotate(270deg); transform-origin: top left; width: 65px; left: 7px; top: -5px; cursor: default;"
-                class="text-nowrap d-flex">{!! $row['format'] !!}</div>
+        @if ($day['traffic'] > 0)
+            <div style="position: absolute; font-size: 70%; transform: rotate(270deg); transform-origin: top left; width: 65px; left: 7px; top: -5px; cursor: default;" class="text-nowrap d-flex">{!! $day['format'] !!}</div>
         @endif
 
-        <div style="position: absolute; bottom: -30px; left: 7px; cursor: default; opacity: {{ $row['traffic'] > 0 ? '1' : '0.3' }};"
-            title="{!! now()->create($row['date'])->format('d.m.Y') !!}">{!! now()->create($row['date'])->format('d') !!}</div>
+        <div style="position: absolute; bottom: -30px; left: 7px; cursor: default; opacity: {{ $day['traffic'] > 0 ? '1' : '0.3' }};" title="{!! now()->create($day['date'])->format('d.m.Y') !!}">{!! now()->create($day['date'])->format('d') !!}</div>
     </div>
-@endforeach
+    @endforeach
 
 </div>
+
+{{-- @php dump($progress, $row->toArray()) @endphp --}}
 
 <script>
     // $(function () {

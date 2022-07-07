@@ -13,9 +13,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group(['prefix' => 'internet'], function () {
+Route::group([
+    'prefix' => 'internet',
+    // 'middleware' => \App\Http\Middleware\AuthInternetCabinet::class
+], function () {
 
     Route::get('/', 'Mikrotik\Cabinet@main');
+    Route::get('/{name}', 'Mikrotik\Cabinet@main');
 });
 
 Route::any('/', function () {
