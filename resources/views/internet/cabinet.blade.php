@@ -3,7 +3,8 @@
 @section("body")
 
 <div class="mt-3 mb-3 text-center">
-    <h1>{{ $row->title ?? $row->name }}</h1>
+    <h1 class="mb-0">{{ $row->title ?? $row->name }}</h1>
+    <small>{{ $period }}</small>
 </div>
 
 <div class="w-100 mx-auto pb-4" style="max-width: 1000px;">
@@ -54,7 +55,19 @@
 
 </div>
 
-{{-- @php dump($progress, $row->toArray()) @endphp --}}
+@if ($links)
+
+    <hr />
+
+    <div class="mx-auto text-center"><b class="text-center">История</b></div>
+
+    <div class="mt-2 d-flex justify-content-center">
+        {!! $links !!}
+    </div>
+
+@endif
+
+{{-- @php dump($links, $progress, $row->toArray()) @endphp --}}
 
 <script>
     // $(function () {
