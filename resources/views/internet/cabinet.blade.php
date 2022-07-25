@@ -7,7 +7,7 @@
     <small>{{ $period }}</small>
 </div>
 
-<div class="w-100 mx-auto pb-4" style="max-width: 1000px;">
+<div class="w-100 mx-auto pb-4 px-1" style="max-width: 1000px;">
 
     <div class="d-flex align-items-center">
 

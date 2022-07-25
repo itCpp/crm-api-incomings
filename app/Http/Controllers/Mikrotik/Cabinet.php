@@ -25,9 +25,15 @@ class Cabinet extends Queues
         $request->name = $name;
         $request->row = $row;
 
-        $month = $request->month ?: now()->format("Y-m");
         $start = $row->start ?: $row->created_at->format("Y-m-d");
         $day = (int) now()->create($start)->format("j");
+
+        if ($request->month)
+            $month = $request->month;
+        else if ($day < (int) now()->format("j"))
+            $month = now()->addMonth()->format("Y-m");
+        else
+            $month = now()->format("Y-m");
 
         $date = now()->create($month)->setDay($day);
         $start = $date->copy()->subMonth();
@@ -99,6 +105,8 @@ class Cabinet extends Queues
         $row->traffic_format = $this->formatBytes($row->traffic);
         $row->traffic_limit = $limit > 0 ? $this->formatBytes($limit) : null;
 
+        setlocale(LC_ALL, 'ru_RU', 'ru_RU.UTF-8', 'ru', 'russian');  
+
         return view('internet.cabinet', [
             'row' => $row,
             'days' => $days ?? [],
@@ -137,20 +145,19 @@ class Cabinet extends Queues
             $now_month = now()->create($month)->subMonth()->format("Y-m");
         }
 
-        $links = "";
+        $prev = $next = $now = "";
 
         MikrotikQueue::select('month')
             ->where([
                 ['name', $request->row->name],
-                ['month', '<', $now_month],
-                ['month', '!=', $month]
+                ['month', '<=', $now_month],
             ])
             ->distinct()
-            ->limit(2)
-            ->orderBy('month', 'DESC')
+            ->limit(3)
+            ->orderBy('month')
             ->get()
-            ->each(function ($row) use (&$links) {
-                $links .= $this->getHtmlLink($row->month);
+            ->each(function ($row) use (&$prev) {
+                $prev .= $this->getHtmlLink($row->month);
             });
 
         MikrotikQueue::select('month')
@@ -162,9 +169,15 @@ class Cabinet extends Queues
             ->distinct()
             ->limit(2)
             ->get()
-            ->each(function ($row) use (&$links) {
-                $links .= $this->getHtmlLink($row->month);
+            ->each(function ($row) use (&$next) {
+                $next .= $this->getHtmlLink($row->month);
             });
+
+        if (((bool) $prev or (bool) $next) and $request->month) {
+            $now = "<a class=\"btn btn-warning btn-sm ms-3 me-1\" href=\"?month\">Текущий</a>";
+        }
+
+        $links = $prev . $next . $now;
 
         return (bool) $links ? $links : null;
     }
@@ -177,6 +190,10 @@ class Cabinet extends Queues
      */
     public function getHtmlLink($month)
     {
-        return "<a class=\"btn btn-success btn-sm mx-1\" href=\"?month={$month}\">{$month}</a>";
+        $title = strftime("%b %Y", now()->create($month)->timestamp); 
+
+        return "<a class=\"btn btn-success btn-sm mx-1\" href=\"?month={$month}\">{$title}</a>";
     }
+
+
 }

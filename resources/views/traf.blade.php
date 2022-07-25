@@ -11,7 +11,7 @@
         integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
 </head>
 
-<body>
+<body class="px-1">
 
     <div class="mt-3 mb-3 text-center">
         <h1>{{ $name }}</h1>
