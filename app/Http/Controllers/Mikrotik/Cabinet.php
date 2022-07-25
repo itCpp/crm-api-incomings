@@ -30,14 +30,20 @@ class Cabinet extends Queues
 
         if ($request->month)
             $month = $request->month;
-        else if ($day < (int) now()->format("j"))
+        else if ($day < (int) now()->format("j") and $day > 15)
             $month = now()->addMonth()->format("Y-m");
         else
             $month = now()->format("Y-m");
 
         $date = now()->create($month)->setDay($day);
-        $start = $date->copy()->subMonth();
-        $stop = $date->copy();
+
+        if ($day > 15) {
+            $start = $date->copy()->subMonth();
+            $stop = $date->copy();
+        } else {
+            $start = $date->copy();
+            $stop = $date->copy()->addMonth();
+        }
 
         $query = MikrotikQueue::where([
             ['name', $name],
@@ -130,7 +136,7 @@ class Cabinet extends Queues
      */
     public function getLinks(Request $request)
     {
-        if (!($request->row instanceof  MikrotikQueuesLimit))
+        if (!($request->row instanceof MikrotikQueuesLimit))
             $request->row = MikrotikQueuesLimit::whereName($request->name)->first();
 
         if (!$request->row)
@@ -138,19 +144,23 @@ class Cabinet extends Queues
 
         $start = now()->create($request->row->start ?: $request->row->created_at->format("Y-m-d"));
         $month = $request->month ?: now()->format("Y-m");
+        $day = (int) now()->format("j");
+        $day_start = (int) $start->format("j");
 
-        if ((int) now()->format("j") >= (int) $start->format("j")) {
+        $prev = $next = $now = "";
+        
+
+        if ($day >= $day_start and $day_start > 15) {
             $now_month = now()->create($month)->format("Y-m");
         } else {
             $now_month = now()->create($month)->subMonth()->format("Y-m");
         }
 
-        $prev = $next = $now = "";
-
         MikrotikQueue::select('month')
             ->where([
                 ['name', $request->row->name],
                 ['month', '<=', $now_month],
+                ['month', '>=', now()->create($start)->format("Y-m")],
             ])
             ->distinct()
             ->limit(3)
@@ -167,15 +177,15 @@ class Cabinet extends Queues
                 ['month', '!=', $month]
             ])
             ->distinct()
+            ->orderBy('month')
             ->limit(2)
             ->get()
             ->each(function ($row) use (&$next) {
                 $next .= $this->getHtmlLink($row->month);
             });
 
-        if (((bool) $prev or (bool) $next) and $request->month) {
-            $now = "<a class=\"btn btn-warning btn-sm ms-3 me-1\" href=\"?month\">Текущий</a>";
-        }
+        if (((bool) $prev or (bool) $next) and $request->month and ($request->month != now()->format("Y-m") or $day_start > 15))
+            $now = "<a class=\"btn btn-warning btn-sm mx-1\" href=\"?month\">Текущий</a>";
 
         $links = $prev . $next . $now;
 
@@ -186,14 +196,28 @@ class Cabinet extends Queues
      * Возвращает html разметку ссылки смены месяца
      * 
      * @param  string $month
+     * @param  boolean $active
      * @return string
      */
-    public function getHtmlLink($month)
+    public function getHtmlLink($month, $active = false)
     {
-        $title = strftime("%b %Y", now()->create($month)->timestamp); 
+        $date = now()->create($month);
+        // $title = strftime("%b %Y", now()->create($month)->timestamp);
+        $title = trim($this->getMonthName($date->format("n")) . " " . $date->format("Y"));
 
-        return "<a class=\"btn btn-success btn-sm mx-1\" href=\"?month={$month}\">{$title}</a>";
+        return "<a class=\"btn btn-success btn-sm mx-1 {($active ? 'active' : '')}\" href=\"?month={$month}\">{$title}</a>";
     }
 
+    /**
+     * Метод вывода месяца
+     * 
+     * @param  int $month
+     * @return string
+     */
+    public function getMonthName($month)
+    {
+        $months = ["", "ЯНВ", "ФЕВ", "МАР", "АПР", "МАЙ", "ИЮН", "ИЮЛ", "АВГ", "СЕН", "ОКТ", "НОЯ", "ДЕК"];
 
+        return $months[$month] ?? "";
+    }
 }
