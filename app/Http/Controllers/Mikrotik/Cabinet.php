@@ -160,7 +160,7 @@ class Cabinet extends Queues
             ->where([
                 ['name', $request->row->name],
                 ['month', '<=', $now_month],
-                ['month', '>=', now()->create($start)->format("Y-m")],
+                ['month', $day_start > 15 ? '>' : '>=', now()->create($start)->format("Y-m")],
             ])
             ->distinct()
             ->limit(3)
