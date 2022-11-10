@@ -107,14 +107,12 @@ class Records extends Controller
         if ($office === false or !(bool) ($office->icon ?? null))
             return $this->get_office_icon[$office_id] = null;
 
-        $icon = null;
-
         try {
             $imageSize = getimagesize($office->icon);
             $imageData = base64_encode(file_get_contents($office->icon));
             $icon = "data:{$imageSize['mime']};base64,{$imageData}";
         } catch (Exception $e) {
-            $icon = $e->getMessage();
+            $icon = null;
         }
 
         return $this->get_office_icon[$office_id] = $icon;
