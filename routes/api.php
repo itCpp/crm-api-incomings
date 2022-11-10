@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Records;
 use App\Http\Middleware\WriteApiAccessQuery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -45,3 +46,6 @@ Route::get('mikrotik/queue/{upload}/{download}/{name}', 'Mikrotik\Queues@set');
 
 /** Вывод данных для грфика расхода траффика */
 Route::get('mikrotik/graph/{name}', 'Mikrotik\Graph@index');
+
+/** Вывод записей */
+Route::any('info:{token}/getRecords', [Records::class, "index"]);
